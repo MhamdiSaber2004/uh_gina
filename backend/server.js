@@ -6,7 +6,11 @@ const {connectDB} = require('./utils/db');
 dotenv.config();
 
 const app = express();
-app.use(cors());
+app.use(cors({
+  origin: 'https://uh-gina.onrender.com',
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  credentials: true // if you send cookies/auth headers
+}));
 app.use(express.json());
 
 const authRouter = require('./router/authRouter');
