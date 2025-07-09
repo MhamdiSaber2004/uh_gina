@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const axiosInstance = axios.create({
-  baseURL: 'https://uh-gina-backend.onrender.com', // change to your backend URL
+  baseURL: 'https://uh-gina-backend.onrender.com/api', // change to your backend URL
 });
 
 // Automatically attach token from localStorage
