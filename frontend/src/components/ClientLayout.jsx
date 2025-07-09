@@ -1,6 +1,6 @@
 import { Outlet, useNavigate } from "react-router-dom";
 import { useEffect } from "react";
-import ClientNavBar from "./clientNavBar";
+import ClientNavBar from "./ClientNavBar";
 
 export default function ClientLayout() {
   const navigate = useNavigate();
