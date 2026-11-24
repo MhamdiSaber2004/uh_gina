@@ -17,9 +17,10 @@ export default function AdminNavBar() {
 
   const navigation = [
     { name: 'إدارة الطلبات (Commandes)', href: '/admin' },
+    { name: 'المتاجر والسلع (Magasins)', href: '/admin/stores' },
     { name: 'السائقين (Livreurs)', href: '/admin/livreurs' },
     { name: 'الزبائن (Clients)', href: '/admin/clients' },
-    { name: 'حسابي (Profil)', href: '/admin/Profile' },
+    { name: 'حسابي (Profil)', href: '/admin/profile' },
   ].map((item) => ({
     ...item,
     current: location.pathname.toLowerCase() === item.href.toLowerCase(),

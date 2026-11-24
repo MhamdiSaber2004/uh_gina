@@ -1,7 +1,7 @@
 const path = require('path');
 const fs = require('fs');
 
-let mongoose, User, Commande;
+let mongoose, User, Commande, Store;
 
 try {
   mongoose = require('mongoose');
@@ -16,9 +16,11 @@ try {
 try {
   User = require(path.join(__dirname, '../backend/model/userModel'));
   Commande = require(path.join(__dirname, '../backend/model/commandeModel'));
+  Store = require(path.join(__dirname, '../backend/model/storeModel'));
 } catch (e) {
   User = require('/app/model/userModel');
   Commande = require('/app/model/commandeModel');
+  Store = require('/app/model/storeModel');
 }
 
 const mongoUrl = process.env.MONGO_URL || 'mongodb://127.0.0.1:27018/uh_gina';
@@ -31,11 +33,13 @@ async function seed() {
 
     // 1. Load data files
     const usersData = JSON.parse(fs.readFileSync(path.join(__dirname, 'users.json'), 'utf8'));
+    const storesData = JSON.parse(fs.readFileSync(path.join(__dirname, 'stores.json'), 'utf8'));
     const commandesData = JSON.parse(fs.readFileSync(path.join(__dirname, 'commandes.json'), 'utf8'));
 
-    // 2. Clear existing demo data or reset
-    console.log('Clearing existing users and commandes...');
+    // 2. Clear existing collections
+    console.log('Clearing existing users, stores, and commandes...');
     await Commande.deleteMany({});
+    await Store.deleteMany({});
     await User.deleteMany({});
 
     // 3. Insert users (using User.create so pre-save password hash hook executes)
@@ -56,10 +60,28 @@ async function seed() {
     // Map users by phoneNumber for easy reference
     const userMap = new Map();
     createdUsers.forEach(u => userMap.set(Number(u.phoneNumber), u));
-
     const adminUser = createdUsers.find(u => u.role === 'admin');
 
-    // 4. Insert commandes
+    // 4. Insert stores
+    console.log('Seeding stores...');
+    const createdStores = [];
+    for (const s of storesData) {
+      const newStore = await Store.create({
+        name: s.name,
+        category: s.category,
+        phone: s.phone,
+        address: s.address,
+        description: s.description,
+        items: s.items || []
+      });
+      createdStores.push(newStore);
+      console.log(` -> Created Store: ${newStore.name} (${newStore.items.length} items)`);
+    }
+
+    const storeMap = new Map();
+    createdStores.forEach(s => storeMap.set(s.name, s));
+
+    // 5. Insert commandes
     console.log('Seeding commandes...');
     for (const c of commandesData) {
       const client = userMap.get(Number(c.clientPhone));
@@ -70,11 +92,19 @@ async function seed() {
         continue;
       }
 
+      const matchedStore = storeMap.get(c.storeName);
+
       await Commande.create({
         user: client._id,
         clientName: client.name,
         phone: String(c.phone),
         adress: c.adress,
+        store: matchedStore ? matchedStore._id : null,
+        storeName: c.storeName || (matchedStore ? matchedStore.name : 'طلب حر'),
+        items: c.items || [],
+        prixItems: c.prixItems || 0,
+        fraisLivraison: c.fraisLivraison || 0,
+        prixTotal: c.prixTotal || (c.prixItems || 0) + (c.fraisLivraison || 0),
         description: c.description,
         etat: c.etat,
         livreur: livreur ? livreur._id : null,
@@ -88,6 +118,7 @@ async function seed() {
     console.log('\n========================================');
     console.log(' Demo Data Seeded Successfully! 🎉');
     console.log('========================================');
+    console.log('Stores created: ' + createdStores.length);
     console.log('Credentials to test:');
     console.log('1. Admin:   Phone: 29146431 | Password: password123');
     console.log('2. Livreur: Phone: 22123456 | Password: password123');

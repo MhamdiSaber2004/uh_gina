@@ -1,35 +1,43 @@
 const express = require('express');
 const {
-    getAllCommandes , 
-    getLivreurCommandes , 
-    getClientCommandes , 
-    createCommandeByClient , 
-    createCommandeByAdmin , 
+    getAllCommandes, 
+    getLivreurCommandes, 
+    getClientCommandes, 
+    createCommandeByClient, 
+    createCommandeByAdmin, 
     modifyEtatCommande,
+    setFraisLivraison,
+    annulerCommandeByClient,
     annulerCommande
 } = require('../controller/commandeControler');
-const { verifyAdmin , verifyLivreur , verifyclient} = require('../middleware/protected');
+const { verifyAdmin, verifyLivreur, verifyclient } = require('../middleware/protected');
 const router = express.Router();
 
-//get all commandes
-router.get('/', verifyAdmin , getAllCommandes);
+// Get all commandes (Admin)
+router.get('/', verifyAdmin, getAllCommandes);
 
-//get livreur commandes
+// Get livreur commandes
 router.get('/livreur', verifyLivreur, getLivreurCommandes);
 
-//get client commandes
+// Get client commandes
 router.get('/client', verifyclient, getClientCommandes);
 
-//create commande
+// Create commande by client
 router.post('/create', verifyclient, createCommandeByClient);
 
-//create commande by admin
+// Create commande by admin
 router.post('/admin/create', verifyAdmin, createCommandeByAdmin);
 
-//modify etat commande
+// Modify etat commande by livreur
 router.put('/modify/:id', verifyLivreur, modifyEtatCommande);
 
-//anuller commande
+// Set delivery fee by livreur
+router.put('/frais/:id', verifyLivreur, setFraisLivraison);
+
+// Client cancel order (strictly allowed ONLY when status is 'encours')
+router.put('/client/annuler/:id', verifyclient, annulerCommandeByClient);
+
+// Admin cancel order (at any stage)
 router.put('/annuler/:id', verifyAdmin, annulerCommande);
 
 module.exports = router;

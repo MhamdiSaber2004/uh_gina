@@ -4,7 +4,25 @@
     "clientName": "Mohamed Ben Ali",
     "phone": "98112233",
     "adress": "Kasserine, Avenue de l'Environnement",
-    "description": "وجبة غداء كاملة (بيتزا فواكه بحر + كوكاكولا) من مطعم السلام",
+    "storeName": "مطعم السلام (Fast Food)",
+    "description": "وجبة غداء كاملة: بيتزا مكسيكان عائلية مع مشروب بارد",
+    "items": [
+      {
+        "name": "بيتزا مكسيكان عائلية",
+        "quantity": 1,
+        "price": 14.0,
+        "details": "حار مع جبن موتزاريلا إضافي"
+      },
+      {
+        "name": "مشروب غازي 1 لتر",
+        "quantity": 1,
+        "price": 3.0,
+        "details": "كوكا كولا مثلجة"
+      }
+    ],
+    "prixItems": 17.0,
+    "fraisLivraison": 0,
+    "prixTotal": 17.0,
     "etat": "encours",
     "livreurPhone": null
   },
@@ -13,7 +31,25 @@
     "clientName": "Sarra Trabelsi",
     "phone": "44556677",
     "adress": "Kasserine, Cité Essalem",
-    "description": "حليب رضع رقم 1 + حفاضات أطفال + خافض حرارة من صيدلية الليل",
+    "storeName": "صيدلية الليل المركزية",
+    "description": "مستلزمات صيدلية عاجلة: حليب أطفال وبنادول مسكن",
+    "items": [
+      {
+        "name": "حليب أطفال رقم 1 (800غ)",
+        "quantity": 1,
+        "price": 21.0,
+        "details": "علبة جديدة محكمة الغلق"
+      },
+      {
+        "name": "علبة بنادول إكسترا 500 مغ",
+        "quantity": 1,
+        "price": 4.2,
+        "details": "خافض حرارة سريع"
+      }
+    ],
+    "prixItems": 25.2,
+    "fraisLivraison": 4.0,
+    "prixTotal": 29.2,
     "etat": "enlivraison",
     "livreurPhone": 22123456
   },
@@ -22,7 +58,25 @@
     "clientName": "Fares Guesmi",
     "phone": "21334455",
     "adress": "Kasserine, Route de Thala",
-    "description": "ملف وثائق قانونية عاجل من المحكمة الابتدائية إلى مكتب المحاماة",
+    "storeName": "مخبزة وحلويات الأصالة",
+    "description": "فطور الصباح: تشكيلة كرواسون وخبز باغات طازج",
+    "items": [
+      {
+        "name": "كرواسون بالزبدة والشوكولاتة (3 قطع)",
+        "quantity": 2,
+        "price": 3.6,
+        "details": "ساخن من الفرن"
+      },
+      {
+        "name": "خبز باغات طازج (4 قطع)",
+        "quantity": 1,
+        "price": 1.0,
+        "details": "خبز مقرمش"
+      }
+    ],
+    "prixItems": 8.2,
+    "fraisLivraison": 3.5,
+    "prixTotal": 11.7,
     "etat": "livree",
     "livreurPhone": 55987654
   },
@@ -31,7 +85,19 @@
     "clientName": "Mohamed Ben Ali",
     "phone": "98112233",
     "adress": "Kasserine, Avenue de l'Environnement",
-    "description": "صندوق خضار وفواكه من سوق الجملة بالقصرين",
+    "storeName": "سوبرماركت المدينة",
+    "description": "قارورة زيت نباتي للطبخ",
+    "items": [
+      {
+        "name": "قارورة زيت نباتي 5 لتر",
+        "quantity": 1,
+        "price": 19.5,
+        "details": "زيت نباتي ممتاز"
+      }
+    ],
+    "prixItems": 19.5,
+    "fraisLivraison": 0,
+    "prixTotal": 19.5,
     "etat": "annulee",
     "livreurPhone": null,
     "cancelledByAdmin": true
@@ -41,7 +107,19 @@
     "clientName": "Sarra Trabelsi",
     "phone": "44556677",
     "adress": "Kasserine, Cité Essalem",
+    "storeName": "طلب مخصص (متجر خارجي)",
     "description": "شاحن هاتف أصلي Type-C من محطة الخدمات",
+    "items": [
+      {
+        "name": "شاحن هاتف أصلي Type-C",
+        "quantity": 1,
+        "price": 15.0,
+        "details": "شاحن سريع 30W"
+      }
+    ],
+    "prixItems": 15.0,
+    "fraisLivraison": 0,
+    "prixTotal": 15.0,
     "etat": "encours",
     "livreurPhone": null
   }

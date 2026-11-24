@@ -1,5 +1,25 @@
 const mongoose = require('mongoose');
 
+const commandeItemSchema = new mongoose.Schema({
+    name: {
+        type: String,
+        required: true
+    },
+    details: {
+        type: String,
+        default: ''
+    },
+    quantity: {
+        type: Number,
+        default: 1,
+        min: 1
+    },
+    price: {
+        type: Number,
+        default: 0
+    }
+});
+
 const commandeSchema = new mongoose.Schema({
     user: {
         type: mongoose.Schema.Types.ObjectId,
@@ -13,9 +33,31 @@ const commandeSchema = new mongoose.Schema({
     description: {
         type: String,
     },
+    items: [commandeItemSchema],
+    prixItems: {
+        type: Number,
+        default: 0
+    },
+    fraisLivraison: {
+        type: Number,
+        default: 0
+    },
+    prixTotal: {
+        type: Number,
+        default: 0
+    },
+    store: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Store',
+    },
+    storeName: {
+        type: String,
+        default: ''
+    },
     etat: {
         type: String,
-        enum: ['encours', 'enlivraison' ,'livree', 'annulee'], // Add more states if needed
+        enum: ['encours', 'enlivraison' ,'livree', 'annulee'],
+        default: 'encours',
         required: true
     },
     livreurName: {

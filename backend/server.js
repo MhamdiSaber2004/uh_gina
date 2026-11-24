@@ -33,6 +33,9 @@ app.use('/api/auth', authRouter);
 const commandeRouter = require('./router/commandeRouter');
 app.use('/api/commandes', commandeRouter);
 
+const storeRouter = require('./router/storeRouter');
+app.use('/api/stores', storeRouter);
+
 
 const PORT = process.env.PORT || 3001;
 

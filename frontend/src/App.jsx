@@ -14,6 +14,7 @@ import AdminLayout from './components/AdminLayout';
 import AdminAllClients from './pages/AdminClient';
 import AdminLivreur from './pages/AdminLivreurs';
 import AdminCommandes from './pages/AdminCommandes';
+import AdminStores from './pages/AdminStores';
 import AdminProfile from './pages/AdminProfile';
 
 function App() {
@@ -37,6 +38,7 @@ function App() {
           </Route>
           <Route path='/admin' element={<AdminLayout />}>
             <Route index element={<AdminCommandes />} />
+            <Route path='stores' element={<AdminStores />} />
             <Route path='livreurs' element={<AdminLivreur />} />
             <Route path="clients" element={<AdminAllClients />} />
             <Route path="profile" element={<AdminProfile />} />
