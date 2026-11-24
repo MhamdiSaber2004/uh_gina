@@ -14,6 +14,10 @@ const itemSchema = new mongoose.Schema({
     type: String,
     default: ''
   },
+  image: {
+    type: String,
+    default: ''
+  },
   available: {
     type: Boolean,
     default: true
@@ -48,6 +52,10 @@ const storeSchema = new mongoose.Schema({
   image: {
     type: String,
     default: ''
+  },
+  totalPaidToStore: {
+    type: Number,
+    default: 0
   },
   items: [itemSchema]
 }, {

@@ -14,9 +14,9 @@ import {
   PhoneIcon,
   MapPinIcon,
   CheckCircleIcon,
-  ArrowRightIcon,
   PencilSquareIcon,
   ChevronLeftIcon,
+  PhotoIcon,
 } from "@heroicons/react/24/outline";
 
 export default function ClientAddCommand() {
@@ -53,6 +53,10 @@ export default function ClientAddCommand() {
   const [customQty, setCustomQty] = useState(1);
   const [customPrice, setCustomPrice] = useState("");
   const [customDetails, setCustomDetails] = useState("");
+  const [customImage, setCustomImage] = useState("");
+
+  // Preview Image Modal
+  const [previewImage, setPreviewImage] = useState(null);
 
   useEffect(() => {
     fetchStores();
@@ -65,7 +69,6 @@ export default function ClientAddCommand() {
       const loadedStores = res.data.stores || [];
       setStores(loadedStores);
 
-      // Auto-select first store if available for immediate convenience
       if (loadedStores.length > 0 && !selectedStore) {
         setSelectedStore(loadedStores[0]);
       }
@@ -92,10 +95,29 @@ export default function ClientAddCommand() {
           price: Number(storeItem.price) || 0,
           quantity: 1,
           details: storeItem.description || "",
+          image: storeItem.image || "",
         },
       ];
     });
     showToast(`تمت إضافة "${storeItem.name}" إلى السلة!`, "success");
+  };
+
+  // Upload image for custom item
+  const handleCustomImageUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      showToast("حجم الصورة كبير جداً، اختر صورة أقل من 5 ميغابايت", "error");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      setCustomImage(event.target.result);
+      showToast("تم إرفاق صورة المنتج المطلوب بنجاح! 📸", "success");
+    };
+    reader.readAsDataURL(file);
   };
 
   // Add manual custom item (either for selected store or custom order)
@@ -111,6 +133,7 @@ export default function ClientAddCommand() {
       price: customPrice ? parseFloat(customPrice) : 0,
       quantity: Number(customQty) || 1,
       details: customDetails.trim() || (selectedStore ? `طلب خاص من ${selectedStore.name}` : "طلب مخصص"),
+      image: customImage || "",
     };
 
     setItems((prev) => [...prev, newItem]);
@@ -121,6 +144,7 @@ export default function ClientAddCommand() {
     setCustomQty(1);
     setCustomPrice("");
     setCustomDetails("");
+    setCustomImage("");
     setShowManualForm(false);
   };
 
@@ -188,7 +212,6 @@ export default function ClientAddCommand() {
     }
   };
 
-  // Filter stores
   const categories = ["الكل", "مطعم", "صيدلية", "سوبرماركت", "مقهى", "أخرى"];
   
   const filteredStores = stores.filter((s) => {
@@ -226,11 +249,10 @@ export default function ClientAddCommand() {
               المتاجر والمنتجات في القصرين
             </h1>
             <p className="text-xs text-gray-500 mt-1">
-              اختر متجرك المفضل، أضف السلع والوجبات مباشرة إلى طلبيتك، أو أضف أي غرض مخصص تريده
+              اختر متجرك المفضل، أضف السلع بالصور مباشرة إلى طلبيتك، أو أضف أي غرض مخصص مع صورته
             </p>
           </div>
 
-          {/* Quick Custom Order Button */}
           <button
             onClick={() => {
               setSelectedStore(null);
@@ -250,10 +272,10 @@ export default function ClientAddCommand() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
         
-        {/* Main 2-Column Grid: Stores/Products (Cols 1-7) & Order Cart (Cols 8-12) */}
+        {/* Main 2-Column Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
           
-          {/* RIGHT / MAIN CONTENT (Cols 1-7): Store Selector, Categories, & Catalog */}
+          {/* RIGHT / MAIN CONTENT: Store Selector & Products */}
           <div className="lg:col-span-7 space-y-6">
 
             {/* Category Filter Pills & Search */}
@@ -287,7 +309,7 @@ export default function ClientAddCommand() {
               </div>
             </div>
 
-            {/* Stores Carousel / Grid List */}
+            {/* Stores List */}
             <div>
               <div className="flex items-center justify-between mb-3">
                 <h2 className="text-sm font-extrabold text-gray-800 flex items-center gap-1.5">
@@ -366,7 +388,7 @@ export default function ClientAddCommand() {
               )}
             </div>
 
-            {/* Selected Store's Products Catalog */}
+            {/* Selected Store's Products Catalog with Images */}
             {selectedStore && (
               <div className="bg-white p-5 rounded-2xl shadow-xs border border-gray-100 space-y-4">
                 <div className="flex items-center justify-between border-b border-gray-100 pb-3">
@@ -387,7 +409,7 @@ export default function ClientAddCommand() {
                 {/* Products Grid */}
                 {!selectedStore.items || selectedStore.items.length === 0 ? (
                   <div className="p-6 text-center text-xs text-gray-400 bg-gray-50 rounded-xl border border-dashed border-gray-200">
-                    لا توجد منتجات مسجلة لهذا المتجر حالياً. يمكنك إضافة ما تريده يدوياً في الأسفل!
+                    لا توجد منتجات مسجلة لهذا المتجر حالياً. يمكنك إضافة ما تريده يدوياً مع الصورة في الأسفل!
                   </div>
                 ) : (
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -400,17 +422,35 @@ export default function ClientAddCommand() {
                           className="bg-gray-50/70 p-3.5 rounded-xl border border-gray-200/70 flex flex-col justify-between hover:border-indigo-300 transition"
                         >
                           <div>
-                            <div className="flex items-start justify-between gap-2">
-                              <span className="text-xs font-black text-emerald-600 whitespace-nowrap">
-                                {Number(item.price).toFixed(2)} د.ت
-                              </span>
-                              <h4 className="text-xs font-extrabold text-gray-900">{item.name}</h4>
+                            {/* Product Image & Details Header */}
+                            <div className="flex items-start gap-3">
+                              {item.image ? (
+                                <img
+                                  src={item.image}
+                                  alt={item.name}
+                                  onClick={() => setPreviewImage(item.image)}
+                                  className="w-16 h-16 rounded-xl object-cover border border-gray-200 shrink-0 cursor-pointer hover:opacity-90 shadow-2xs"
+                                />
+                              ) : (
+                                <div className="w-16 h-16 rounded-xl bg-gray-200/60 flex items-center justify-center text-gray-400 shrink-0">
+                                  <PhotoIcon className="w-7 h-7" />
+                                </div>
+                              )}
+
+                              <div className="flex-1">
+                                <div className="flex items-start justify-between gap-1">
+                                  <span className="text-xs font-black text-emerald-600 whitespace-nowrap">
+                                    {Number(item.price).toFixed(2)} د.ت
+                                  </span>
+                                  <h4 className="text-xs font-extrabold text-gray-900">{item.name}</h4>
+                                </div>
+                                {item.description && (
+                                  <p className="text-[11px] text-gray-500 mt-1 line-clamp-2">
+                                    {item.description}
+                                  </p>
+                                )}
+                              </div>
                             </div>
-                            {item.description && (
-                              <p className="text-[11px] text-gray-500 mt-1 line-clamp-2">
-                                {item.description}
-                              </p>
-                            )}
                           </div>
 
                           <div className="mt-3 pt-2 border-t border-gray-200/50 flex items-center justify-between">
@@ -437,7 +477,7 @@ export default function ClientAddCommand() {
                   </div>
                 )}
 
-                {/* Option to add custom item to this specific store */}
+                {/* Option to add custom item WITH IMAGE to this specific store */}
                 <div className="mt-4 pt-4 border-t border-gray-100">
                   {!showManualForm ? (
                     <button
@@ -446,14 +486,14 @@ export default function ClientAddCommand() {
                       className="w-full py-2.5 px-4 rounded-xl border border-dashed border-indigo-300 hover:border-indigo-500 bg-indigo-50/40 hover:bg-indigo-50 text-indigo-700 text-xs font-bold flex items-center justify-center gap-2 transition"
                     >
                       <PlusIcon className="w-4 h-4" />
-                      <span>هل تريد شيئاً غير موجود بقائمة {selectedStore.name}؟ أضفه يدوياً هنا</span>
+                      <span>هل تريد شيئاً غير موجود بقائمة {selectedStore.name}؟ أضفه يدوياً مع صورة هنا</span>
                     </button>
                   ) : (
                     <div className="bg-amber-50/60 border border-amber-200 p-4 rounded-xl space-y-3">
                       <div className="flex items-center justify-between">
                         <h4 className="text-xs font-extrabold text-amber-950 flex items-center gap-1.5">
                           <PencilSquareIcon className="w-4 h-4 text-amber-600" />
-                          إضافة غرض مخصص إلى طلبك من ({selectedStore.name})
+                          إضافة غرض مخصص بالصورة إلى طلبك من ({selectedStore.name})
                         </h4>
                         <button
                           type="button"
@@ -496,7 +536,7 @@ export default function ClientAddCommand() {
                             className="w-full px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-xs focus:outline-indigo-600"
                           />
                         </div>
-                        <div className="sm:col-span-3">
+                        <div className="sm:col-span-4">
                           <input
                             type="text"
                             placeholder="تفاصيل إضافية (مثال: جبن إضافي، حجم كبير، ماركة محددة...)"
@@ -505,10 +545,41 @@ export default function ClientAddCommand() {
                             className="w-full px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-xs focus:outline-indigo-600"
                           />
                         </div>
+
+                        {/* Image Attachment for Custom Product */}
+                        <div className="sm:col-span-3 flex items-center gap-3">
+                          <label className="cursor-pointer bg-white hover:bg-gray-50 border border-dashed border-gray-300 rounded-xl px-3 py-2 text-xs text-gray-700 flex items-center gap-1.5 transition">
+                            <PhotoIcon className="w-4 h-4 text-amber-600" />
+                            <span>{customImage ? "تغيير الصورة المرفقة" : "📷 إرفاق صورة للمنتج المرغوب فيه"}</span>
+                            <input
+                              type="file"
+                              accept="image/*"
+                              onChange={handleCustomImageUpload}
+                              className="hidden"
+                            />
+                          </label>
+                          {customImage && (
+                            <div className="flex items-center gap-1.5">
+                              <img
+                                src={customImage}
+                                alt="Custom item"
+                                className="w-9 h-9 rounded-lg object-cover border border-amber-400"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => setCustomImage("")}
+                                className="text-rose-500 text-[11px] font-bold hover:underline"
+                              >
+                                ✕ حذف
+                              </button>
+                            </div>
+                          )}
+                        </div>
+
                         <div>
                           <button
                             type="submit"
-                            className="w-full bg-amber-600 hover:bg-amber-700 text-white py-1.5 px-3 rounded-lg text-xs font-bold transition shadow-xs"
+                            className="w-full bg-amber-600 hover:bg-amber-700 text-white py-2 px-3 rounded-lg text-xs font-bold transition shadow-xs"
                           >
                             + أضف للسلة
                           </button>
@@ -530,7 +601,7 @@ export default function ClientAddCommand() {
                     طلب حر من أي مكان في القصرين (بدون متجر محدد)
                   </h3>
                   <p className="text-xs text-gray-500 mt-1">
-                    أدخل أي سلعة أو غرض تريده، وسيذهب السائق لاقتنائه وإيصاله إليك
+                    أدخل أي سلعة أو غرض تريده، وأرفق صورته إن أردت، وسيذهب السائق لاقتنائه وإيصاله إليك
                   </p>
                 </div>
 
@@ -568,7 +639,7 @@ export default function ClientAddCommand() {
                         className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl text-xs focus:outline-indigo-600"
                       />
                     </div>
-                    <div className="sm:col-span-3">
+                    <div className="sm:col-span-4">
                       <input
                         type="text"
                         placeholder="ملاحظات أو عنوان المتجر الذي تريده منه..."
@@ -577,6 +648,37 @@ export default function ClientAddCommand() {
                         className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl text-xs focus:outline-indigo-600"
                       />
                     </div>
+
+                    {/* Image Attachment */}
+                    <div className="sm:col-span-3 flex items-center gap-3">
+                      <label className="cursor-pointer bg-white hover:bg-gray-50 border border-dashed border-gray-300 rounded-xl px-3 py-2 text-xs text-gray-700 flex items-center gap-1.5 transition">
+                        <PhotoIcon className="w-4 h-4 text-indigo-600" />
+                        <span>{customImage ? "تغيير الصورة المرفقة" : "📷 إرفاق صورة للمنتج المرغوب فيه"}</span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleCustomImageUpload}
+                          className="hidden"
+                        />
+                      </label>
+                      {customImage && (
+                        <div className="flex items-center gap-1.5">
+                          <img
+                            src={customImage}
+                            alt="Custom item"
+                            className="w-9 h-9 rounded-lg object-cover border border-indigo-400"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setCustomImage("")}
+                            className="text-rose-500 text-[11px] font-bold hover:underline"
+                          >
+                            ✕ حذف
+                          </button>
+                        </div>
+                      )}
+                    </div>
+
                     <div>
                       <button
                         type="submit"
@@ -592,7 +694,7 @@ export default function ClientAddCommand() {
 
           </div>
 
-          {/* LEFT / CHECKOUT & CART (Cols 8-12): Sticky Order Summary */}
+          {/* LEFT / CHECKOUT & CART: Sticky Order Summary */}
           <div ref={checkoutRef} className="lg:col-span-5 space-y-4 lg:sticky lg:top-20">
             
             <div className="bg-white p-5 rounded-3xl shadow-sm border border-gray-200/80 space-y-4">
@@ -616,7 +718,7 @@ export default function ClientAddCommand() {
                 <span className="text-gray-500">المحل:</span>
               </div>
 
-              {/* Items List in Cart */}
+              {/* Items List in Cart with Image Thumbnails */}
               {items.length === 0 ? (
                 <div className="py-10 text-center text-xs text-gray-400 bg-gray-50/50 rounded-2xl border border-dashed border-gray-200">
                   <ShoppingBagIcon className="w-8 h-8 text-gray-300 mx-auto mb-2" />
@@ -663,11 +765,21 @@ export default function ClientAddCommand() {
                         </button>
                       </div>
 
-                      {/* Name & Details */}
-                      <div className="flex-1 text-right">
-                        <h5 className="text-xs font-bold text-gray-900">{item.name}</h5>
-                        {item.details && (
-                          <p className="text-[10px] text-gray-400 line-clamp-1">{item.details}</p>
+                      {/* Thumbnail & Name */}
+                      <div className="flex items-center gap-2 flex-1 text-right justify-end">
+                        <div className="truncate">
+                          <h5 className="text-xs font-bold text-gray-900 truncate">{item.name}</h5>
+                          {item.details && (
+                            <p className="text-[10px] text-gray-400 truncate">{item.details}</p>
+                          )}
+                        </div>
+                        {item.image && (
+                          <img
+                            src={item.image}
+                            alt={item.name}
+                            onClick={() => setPreviewImage(item.image)}
+                            className="w-8 h-8 rounded-lg object-cover border border-gray-200 shrink-0 cursor-pointer"
+                          />
                         )}
                       </div>
                     </div>
@@ -693,7 +805,7 @@ export default function ClientAddCommand() {
                 </div>
               </div>
 
-              {/* Checkout Form (Address & Phone) */}
+              {/* Checkout Form */}
               <form onSubmit={handleSubmitOrder} className="space-y-3 pt-2">
                 <div>
                   <label className="block text-[11px] font-bold text-gray-700 mb-1">
@@ -754,7 +866,29 @@ export default function ClientAddCommand() {
 
       </div>
 
-      {/* Floating Bottom Bar for Mobile when cart has items */}
+      {/* Lightbox Image Preview Modal */}
+      {previewImage && (
+        <div
+          onClick={() => setPreviewImage(null)}
+          className="fixed inset-0 bg-black/80 backdrop-blur-xs flex items-center justify-center z-50 p-4 cursor-pointer"
+        >
+          <div className="relative max-w-lg w-full bg-white p-3 rounded-3xl overflow-hidden" onClick={(e) => e.stopPropagation()}>
+            <img
+              src={previewImage}
+              alt="Enlarged view"
+              className="w-full max-h-[75vh] object-contain rounded-2xl"
+            />
+            <button
+              onClick={() => setPreviewImage(null)}
+              className="absolute top-5 right-5 bg-black/60 hover:bg-black text-white w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm"
+            >
+              ✕
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Floating Bottom Bar for Mobile */}
       {items.length > 0 && (
         <div className="lg:hidden fixed bottom-4 left-4 right-4 z-40 bg-gray-900 text-white p-3.5 rounded-2xl shadow-2xl flex items-center justify-between border border-gray-800">
           <div>

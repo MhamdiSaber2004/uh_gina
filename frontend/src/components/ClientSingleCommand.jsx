@@ -17,6 +17,7 @@ import { useToast } from '../context/ToastContext';
 export default function SingleCommand({ commande, onUpdate }) {
   const [etat, setEtat] = useState(commande.etat);
   const [loading, setLoading] = useState(false);
+  const [previewImg, setPreviewImg] = useState(null);
   const { showToast } = useToast();
 
   const getEtatConfig = (currentEtat) => {
@@ -136,14 +137,27 @@ export default function SingleCommand({ commande, onUpdate }) {
           </p>
           <div className="divide-y divide-gray-200/60">
             {commande.items.map((it, idx) => (
-              <div key={idx} className="flex justify-between items-center py-1.5 text-xs">
+              <div key={idx} className="flex justify-between items-center py-2 text-xs">
                 <span className="font-bold text-gray-900">
                   {it.price > 0 ? `${(it.price * (it.quantity || 1)).toFixed(2)} د.ت` : 'سعر تقريبي'}
                 </span>
-                <span className="text-gray-700">
-                  <span className="font-bold text-indigo-600 ml-1">x{it.quantity || 1}</span> {it.name}
-                  {it.details && <span className="text-gray-400 text-[11px] block">{it.details}</span>}
-                </span>
+                <div className="flex items-center gap-2">
+                  <div className="text-right">
+                    <span className="font-bold text-gray-800">
+                      <span className="font-bold text-indigo-600 ml-1">x{it.quantity || 1}</span> {it.name}
+                    </span>
+                    {it.details && <span className="text-gray-400 text-[11px] block">{it.details}</span>}
+                  </div>
+                  {it.image && (
+                    <img
+                      src={it.image}
+                      alt={it.name}
+                      onClick={() => setPreviewImg(it.image)}
+                      className="w-10 h-10 rounded-lg object-cover border border-gray-200 shrink-0 cursor-pointer hover:opacity-80 shadow-2xs"
+                      title="اضغط لتكبير الصورة"
+                    />
+                  )}
+                </div>
               </div>
             ))}
           </div>
@@ -215,6 +229,24 @@ export default function SingleCommand({ commande, onUpdate }) {
           </span>
         )}
       </div>
+
+      {/* Image Lightbox */}
+      {previewImg && (
+        <div
+          onClick={() => setPreviewImg(null)}
+          className="fixed inset-0 bg-black/80 backdrop-blur-xs flex items-center justify-center z-50 p-4 cursor-pointer"
+        >
+          <div className="relative max-w-sm w-full bg-white p-2 rounded-2xl" onClick={(e) => e.stopPropagation()}>
+            <img src={previewImg} alt="Preview" className="w-full max-h-[70vh] object-contain rounded-xl" />
+            <button
+              onClick={() => setPreviewImg(null)}
+              className="absolute top-4 right-4 bg-black/60 text-white w-7 h-7 rounded-full flex items-center justify-center font-bold"
+            >
+              ✕
+            </button>
+          </div>
+        </div>
+      )}
 
     </div>
   );

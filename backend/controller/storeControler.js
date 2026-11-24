@@ -1,11 +1,34 @@
 const Store = require('../model/storeModel');
+const Commande = require('../model/commandeModel');
 
 exports.getAllStores = async (req, res) => {
     try {
-        const stores = await Store.find().sort({ createdAt: -1 });
+        const stores = await Store.find().sort({ createdAt: -1 }).lean();
+
+        // Compute financial metrics for each store (Total sales & Debt owed)
+        const storesWithFinancials = await Promise.all(stores.map(async (store) => {
+            const deliveredOrders = await Commande.find({
+                store: store._id,
+                etat: 'livree'
+            });
+
+            const totalDeliveredOrders = deliveredOrders.length;
+            const totalSales = deliveredOrders.reduce((sum, c) => sum + (Number(c.prixItems) || 0), 0);
+            const totalPaidToStore = Number(store.totalPaidToStore) || 0;
+            const totalOwed = Math.max(0, totalSales - totalPaidToStore); // كم تدين له
+
+            return {
+                ...store,
+                totalDeliveredOrders,
+                totalSales,
+                totalPaidToStore,
+                totalOwed
+            };
+        }));
+
         res.status(200).json({
             success: true,
-            stores: stores
+            stores: storesWithFinancials
         });
     } catch (error) {
         console.error("Error fetching stores:", error);
@@ -46,6 +69,7 @@ exports.createStore = async (req, res) => {
             adress: storeLocation,
             description: description || '',
             image: image || '',
+            totalPaidToStore: 0,
             items: []
         });
 
@@ -99,7 +123,7 @@ exports.deleteStore = async (req, res) => {
 };
 
 exports.addItemToStore = async (req, res) => {
-    const { name, price, description, available } = req.body;
+    const { name, price, description, image, available } = req.body;
     if (!name || price === undefined) {
         return res.status(400).json({ message: "Item name and price are required" });
     }
@@ -114,6 +138,7 @@ exports.addItemToStore = async (req, res) => {
             name: name.trim(),
             price: Number(price),
             description: description || '',
+            image: image || '',
             available: available !== undefined ? available : true
         });
 
@@ -146,6 +171,35 @@ exports.deleteItemFromStore = async (req, res) => {
         });
     } catch (error) {
         console.error("Error deleting item:", error);
+        res.status(500).json({ message: "Server error", error: error.message });
+    }
+};
+
+// Record a payment / debt settlement to the store (Admin)
+exports.recordStorePayment = async (req, res) => {
+    const { amount } = req.body;
+    const paymentAmount = Number(amount);
+
+    if (isNaN(paymentAmount) || paymentAmount <= 0) {
+        return res.status(400).json({ message: "Valid payment amount is required" });
+    }
+
+    try {
+        const store = await Store.findById(req.params.id);
+        if (!store) {
+            return res.status(404).json({ message: "Store not found" });
+        }
+
+        store.totalPaidToStore = (Number(store.totalPaidToStore) || 0) + paymentAmount;
+        await store.save();
+
+        res.status(200).json({
+            success: true,
+            message: "Payment recorded successfully",
+            store: store
+        });
+    } catch (error) {
+        console.error("Error recording payment to store:", error);
         res.status(500).json({ message: "Server error", error: error.message });
     }
 };

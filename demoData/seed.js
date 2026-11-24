@@ -72,6 +72,8 @@ async function seed() {
         phone: s.phone,
         address: s.address,
         description: s.description,
+        image: s.image || '',
+        totalPaidToStore: 0,
         items: s.items || []
       });
       createdStores.push(newStore);

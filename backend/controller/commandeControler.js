@@ -79,7 +79,8 @@ exports.createCommandeByClient = async (req, res) => {
                 name: item.name,
                 details: item.details || '',
                 quantity: qty,
-                price: price
+                price: price,
+                image: item.image || ''
             };
         }) : [];
 
@@ -137,7 +138,8 @@ exports.createCommandeByAdmin = async (req, res) => {
                 name: item.name,
                 details: item.details || '',
                 quantity: qty,
-                price: price
+                price: price,
+                image: item.image || ''
             };
         }) : [];
 

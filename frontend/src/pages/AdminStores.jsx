@@ -5,6 +5,7 @@ import {
   deleteStore,
   addItemToStore,
   deleteItemFromStore,
+  recordStorePayment,
 } from "../axios/storeApi";
 import { useToast } from "../context/ToastContext";
 import {
@@ -18,6 +19,9 @@ import {
   ChevronDownIcon,
   ChevronUpIcon,
   SparklesIcon,
+  BanknotesIcon,
+  PhotoIcon,
+  ArrowPathIcon,
 } from "@heroicons/react/24/outline";
 
 export default function AdminStores() {
@@ -42,8 +46,14 @@ export default function AdminStores() {
     name: "",
     price: "",
     description: "",
+    image: "",
   });
   const [submittingItem, setSubmittingItem] = useState(false);
+
+  // Payment modal state
+  const [paymentModalStore, setPaymentModalStore] = useState(null);
+  const [paymentAmount, setPaymentAmount] = useState("");
+  const [submittingPayment, setSubmittingPayment] = useState(false);
 
   const toast = useToast();
 
@@ -109,6 +119,23 @@ export default function AdminStores() {
     }
   };
 
+  // Convert uploaded image file to base64
+  const handleItemImageUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast.warning("حجم الصورة كبير جداً، يرجى اختيار صورة أقل من 5 ميغابايت");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      setNewItem((prev) => ({ ...prev, image: event.target.result }));
+    };
+    reader.readAsDataURL(file);
+  };
+
   const handleAddItem = async (e, storeId) => {
     e.preventDefault();
     if (!newItem.name.trim() || !newItem.price) {
@@ -122,14 +149,14 @@ export default function AdminStores() {
         name: newItem.name.trim(),
         price: parseFloat(newItem.price),
         description: newItem.description.trim(),
+        image: newItem.image || "",
       });
 
-      toast.success("تمت إضافة السلعة بنجاح!");
-      // Update local store items
+      toast.success("تمت إضافة السلعة مع الصورة بنجاح!");
       setStores(
         stores.map((s) => (s._id === storeId ? res.data.store : s))
       );
-      setNewItem({ name: "", price: "", description: "" });
+      setNewItem({ name: "", price: "", description: "", image: "" });
     } catch (err) {
       console.error(err);
       toast.error(err.response?.data?.message || "فشل إضافة السلعة");
@@ -155,11 +182,40 @@ export default function AdminStores() {
     }
   };
 
+  // Record payment to store
+  const handleRecordPayment = async (e) => {
+    e.preventDefault();
+    const amount = parseFloat(paymentAmount);
+    if (!amount || amount <= 0) {
+      toast.warning("يرجى إدخال مبلغ صحيح");
+      return;
+    }
+
+    try {
+      setSubmittingPayment(true);
+      await recordStorePayment(paymentModalStore._id, amount);
+      toast.success(`تم تسجيل دفع ${amount.toFixed(2)} د.ت للمتجر بنجاح!`);
+      setPaymentModalStore(null);
+      setPaymentAmount("");
+      fetchStores();
+    } catch (err) {
+      console.error(err);
+      toast.error("فشل تسجيل الدفعة");
+    } finally {
+      setSubmittingPayment(false);
+    }
+  };
+
   const filteredStores = stores.filter(
     (s) =>
       (s.name || "").toLowerCase().includes(search.toLowerCase()) ||
       (s.category || "").toLowerCase().includes(search.toLowerCase()) ||
       (s.address || "").toLowerCase().includes(search.toLowerCase())
+  );
+
+  const totalOwedAllStores = stores.reduce(
+    (sum, s) => sum + (Number(s.totalOwed) || 0),
+    0
   );
 
   return (
@@ -171,10 +227,10 @@ export default function AdminStores() {
           <div>
             <h1 className="text-2xl font-extrabold text-gray-900 flex items-center gap-2">
               <BuildingStorefrontIcon className="w-7 h-7 text-amber-500" />
-              إدارة المتاجر والسلع ({stores.length})
+              إدارة المتاجر، السلع والديون ({stores.length})
             </h1>
             <p className="text-xs text-gray-500 mt-1">
-              إضافة المتاجر في القصرين، تحديد السلع والأسعار لتمكين الزبائن من الطلب بسهولة
+              إضافة المتاجر والسلع بالصور، ومتابعة المبالغ المستحقة لكل متجر (كم تدين له)
             </p>
           </div>
 
@@ -198,6 +254,22 @@ export default function AdminStores() {
               <span>{showAddStore ? "إغلاق النموذج" : "إضافة متجر جديد"}</span>
             </button>
           </div>
+        </div>
+
+        {/* Global Financial Debt Summary Banner */}
+        <div className="bg-linear-to-r from-amber-500 to-amber-600 rounded-2xl p-5 text-white shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
+              <BanknotesIcon className="w-7 h-7 text-white" />
+            </div>
+            <div>
+              <span className="text-xs text-amber-100 font-semibold">إجمالي المبالغ المستحقة لكافة المتاجر (مجموع ما تدين به):</span>
+              <div className="text-2xl font-black">{totalOwedAllStores.toFixed(2)} د.ت</div>
+            </div>
+          </div>
+          <p className="text-xs text-amber-100 max-w-md text-center sm:text-right">
+            المبلغ المستحق يتم احتسابه آلياً من مجموع مشتريات الطلبات المسلّمة مطروحاً منها الدفعات المسجلة.
+          </p>
         </div>
 
         {/* Add Store Form Panel */}
@@ -233,7 +305,7 @@ export default function AdminStores() {
                   <option value="مطعم">مطعم (Restaurant / Fast Food)</option>
                   <option value="صيدلية">صيدلية (Pharmacie)</option>
                   <option value="سوبرماركت">سوبرماركت / بقالة (Supermarché / Épicerie)</option>
-                  <option value="مقهى">مقهى / مثلجات (Café / Pâtisserie)</option>
+                  <option value="مقهى">مقهى / مخبزة (Café / Pâtisserie)</option>
                   <option value="خضار وغلال">خضار وغلال (Fruits & Légumes)</option>
                   <option value="جزارة">لحوم ودواجن (Boucherie)</option>
                   <option value="أخرى">أخرى (Autre)</option>
@@ -284,7 +356,7 @@ export default function AdminStores() {
 
         {/* Stores Grid */}
         {loading ? (
-          <div className="py-16 text-center text-gray-400 font-medium">جاري تحميل بيانات المتاجر...</div>
+          <div className="py-16 text-center text-gray-400 font-medium">جاري تحميل بيانات المتاجر والحسابات...</div>
         ) : filteredStores.length === 0 ? (
           <div className="bg-white p-12 rounded-2xl text-center text-gray-400 border border-gray-100">
             {search ? "لا يوجد متجر مطابق للبحث." : "لا توجد متاجر مضافة حالياً. اضغط على زر 'إضافة متجر جديد' للبدء!"}
@@ -294,6 +366,9 @@ export default function AdminStores() {
             {filteredStores.map((store) => {
               const isExpanded = expandedStoreId === store._id;
               const itemsCount = store.items?.length || 0;
+              const owedAmount = Number(store.totalOwed) || 0;
+              const salesAmount = Number(store.totalSales) || 0;
+              const paidAmount = Number(store.totalPaidToStore) || 0;
 
               return (
                 <div
@@ -301,7 +376,7 @@ export default function AdminStores() {
                   className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden transition"
                 >
                   {/* Store Header Row */}
-                  <div className="p-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                  <div className="p-5 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
                     <div className="flex items-start gap-4">
                       <div className="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
                         <BuildingStorefrontIcon className="w-6 h-6" />
@@ -336,15 +411,44 @@ export default function AdminStores() {
                       </div>
                     </div>
 
+                    {/* Financial Debt & Balances Badge ("كم تدين له") */}
+                    <div className="bg-slate-50 border border-slate-200/80 rounded-xl p-3 flex flex-wrap items-center gap-4 text-xs">
+                      <div>
+                        <span className="text-[11px] text-gray-500 block">المبلغ المستحق (كم تدين له):</span>
+                        <span className={`text-sm font-black ${owedAmount > 0 ? "text-rose-600" : "text-emerald-600"}`}>
+                          {owedAmount.toFixed(2)} د.ت
+                        </span>
+                      </div>
+                      <div className="border-r border-slate-200 pr-3">
+                        <span className="text-[11px] text-gray-400 block">إجمالي المبيعات:</span>
+                        <span className="font-bold text-gray-800">{salesAmount.toFixed(2)} د.ت</span>
+                      </div>
+                      <div className="border-r border-slate-200 pr-3">
+                        <span className="text-[11px] text-gray-400 block">تم دفعه له:</span>
+                        <span className="font-bold text-emerald-700">{paidAmount.toFixed(2)} د.ت</span>
+                      </div>
+                      
+                      <button
+                        onClick={() => {
+                          setPaymentModalStore(store);
+                          setPaymentAmount("");
+                        }}
+                        className="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1 shadow-2xs"
+                      >
+                        <BanknotesIcon className="w-3.5 h-3.5" />
+                        <span>تسجيل دفعة للمتجر</span>
+                      </button>
+                    </div>
+
                     {/* Actions on Store */}
-                    <div className="flex items-center gap-2 self-end md:self-center w-full md:w-auto justify-end">
+                    <div className="flex items-center gap-2 self-end lg:self-center w-full lg:w-auto justify-end">
                       <button
                         onClick={() => handleDeleteStore(store._id, store.name)}
                         title="حذف المتجر"
                         className="p-2 text-rose-500 hover:bg-rose-50 rounded-xl transition border border-rose-100 text-xs font-semibold flex items-center gap-1"
                       >
                         <TrashIcon className="w-4 h-4" />
-                        <span className="hidden sm:inline">حذف المتجر</span>
+                        <span className="hidden sm:inline">حذف</span>
                       </button>
 
                       <button
@@ -369,11 +473,11 @@ export default function AdminStores() {
                   {isExpanded && (
                     <div className="border-t border-gray-100 bg-gray-50/70 p-5 space-y-5">
                       
-                      {/* Add Item Form */}
+                      {/* Add Item Form with Image Support */}
                       <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-xs">
                         <h4 className="text-xs font-extrabold text-gray-900 mb-3 flex items-center gap-1.5">
                           <PlusIcon className="w-4 h-4 text-emerald-600" />
-                          إضافة سلعة / منتج جديد إلى ({store.name})
+                          إضافة سلعة / منتج جديد بالصورة إلى ({store.name})
                         </h4>
 
                         <form
@@ -410,17 +514,42 @@ export default function AdminStores() {
                             />
                           </div>
 
+                          {/* Image Upload Input */}
                           <div>
-                            <button
-                              type="submit"
-                              disabled={submittingItem}
-                              className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-1.5 px-3 rounded-lg text-xs font-bold shadow transition disabled:opacity-50"
-                            >
-                              {submittingItem ? "جاري الإضافة..." : "+ إضافة السلعة"}
-                            </button>
+                            <label className="block text-[11px] font-bold text-gray-600 mb-1 flex items-center justify-between">
+                              <span>صورة السلعة (اختياري)</span>
+                              {newItem.image && (
+                                <button
+                                  type="button"
+                                  onClick={() => setNewItem({ ...newItem, image: "" })}
+                                  className="text-rose-500 text-[10px] hover:underline"
+                                >
+                                  حذف الصورة
+                                </button>
+                              )}
+                            </label>
+                            <div className="flex items-center gap-2">
+                              {newItem.image && (
+                                <img
+                                  src={newItem.image}
+                                  alt="Preview"
+                                  className="w-8 h-8 rounded-lg object-cover border border-emerald-500 shrink-0"
+                                />
+                              )}
+                              <label className="flex-1 cursor-pointer bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-lg px-2 py-1.5 text-xs text-gray-600 text-center flex items-center justify-center gap-1">
+                                <PhotoIcon className="w-4 h-4 text-gray-400" />
+                                <span className="truncate">{newItem.image ? "تغيير الصورة" : "اختر صورة..."}</span>
+                                <input
+                                  type="file"
+                                  accept="image/*"
+                                  onChange={handleItemImageUpload}
+                                  className="hidden"
+                                />
+                              </label>
+                            </div>
                           </div>
 
-                          <div className="sm:col-span-4">
+                          <div className="sm:col-span-3">
                             <input
                               type="text"
                               placeholder="ملاحظات أو تفاصيل اختيارية (مثال: جبن إضافي، حجم كبير...)"
@@ -428,6 +557,16 @@ export default function AdminStores() {
                               onChange={(e) => setNewItem({ ...newItem, description: e.target.value })}
                               className="w-full px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-xs focus:bg-white focus:outline-emerald-500"
                             />
+                          </div>
+
+                          <div>
+                            <button
+                              type="submit"
+                              disabled={submittingItem}
+                              className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-2 px-3 rounded-lg text-xs font-bold shadow transition disabled:opacity-50"
+                            >
+                              {submittingItem ? "جاري الإضافة..." : "+ إضافة السلعة"}
+                            </button>
                           </div>
                         </form>
                       </div>
@@ -441,7 +580,7 @@ export default function AdminStores() {
 
                         {!store.items || store.items.length === 0 ? (
                           <p className="text-xs text-gray-400 bg-white p-4 rounded-xl border border-dashed border-gray-200 text-center">
-                            لا توجد سلع مضافة بعد لهذا المتجر. استخدم النموذج أعلاه لإضافة أول سلعة.
+                            لا توجد سلع مضافة بعد لهذا المتجر. استخدم النموذج أعلاه لإضافة أول سلعة بالصورة.
                           </p>
                         ) : (
                           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
@@ -450,15 +589,29 @@ export default function AdminStores() {
                                 key={item._id}
                                 className="bg-white p-3 rounded-xl border border-gray-200 flex items-center justify-between gap-3 shadow-2xs hover:border-amber-300 transition"
                               >
-                                <div>
-                                  <div className="text-xs font-bold text-gray-900">{item.name}</div>
-                                  {item.description && (
-                                    <div className="text-[11px] text-gray-500 mt-0.5 line-clamp-1">
-                                      {item.description}
+                                <div className="flex items-center gap-2.5">
+                                  {item.image ? (
+                                    <img
+                                      src={item.image}
+                                      alt={item.name}
+                                      className="w-11 h-11 rounded-lg object-cover border border-gray-200 shrink-0"
+                                    />
+                                  ) : (
+                                    <div className="w-11 h-11 rounded-lg bg-gray-100 flex items-center justify-center text-gray-400 shrink-0">
+                                      <PhotoIcon className="w-5 h-5" />
                                     </div>
                                   )}
-                                  <div className="text-xs font-black text-amber-600 mt-1">
-                                    {Number(item.price).toFixed(2)} DT
+
+                                  <div>
+                                    <div className="text-xs font-bold text-gray-900">{item.name}</div>
+                                    {item.description && (
+                                      <div className="text-[11px] text-gray-500 mt-0.5 line-clamp-1">
+                                        {item.description}
+                                      </div>
+                                    )}
+                                    <div className="text-xs font-black text-amber-600 mt-0.5">
+                                      {Number(item.price).toFixed(2)} DT
+                                    </div>
                                   </div>
                                 </div>
 
@@ -484,6 +637,68 @@ export default function AdminStores() {
         )}
 
       </div>
+
+      {/* Record Payment Modal */}
+      {paymentModalStore && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-xs flex items-center justify-center z-50 p-4">
+          <div className="bg-white p-6 rounded-3xl shadow-xl max-w-sm w-full space-y-4 text-right">
+            <div className="flex items-center justify-between border-b border-gray-100 pb-3">
+              <button
+                onClick={() => setPaymentModalStore(null)}
+                className="w-7 h-7 rounded-full bg-gray-100 text-gray-500 hover:bg-gray-200 flex items-center justify-center font-bold"
+              >
+                ✕
+              </button>
+              <h3 className="text-sm font-extrabold text-gray-900">
+                تسجيل دفعة لمتجر ({paymentModalStore.name})
+              </h3>
+            </div>
+
+            <div className="bg-amber-50 p-3 rounded-xl border border-amber-200 text-xs space-y-1">
+              <div className="flex justify-between">
+                <span className="font-bold text-rose-600">{Number(paymentModalStore.totalOwed || 0).toFixed(2)} د.ت</span>
+                <span className="text-gray-600">المبلغ المستحق حالياً (كم تدين له):</span>
+              </div>
+            </div>
+
+            <form onSubmit={handleRecordPayment} className="space-y-3">
+              <div>
+                <label className="block text-xs font-bold text-gray-700 mb-1">
+                  المبلغ المدفوع (د.ت)
+                </label>
+                <input
+                  type="number"
+                  step="0.1"
+                  min="0.1"
+                  required
+                  placeholder="مثال: 50.0"
+                  value={paymentAmount}
+                  onChange={(e) => setPaymentAmount(e.target.value)}
+                  className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs font-bold text-center focus:bg-white focus:outline-emerald-600"
+                />
+              </div>
+
+              <div className="pt-2 flex items-center justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setPaymentModalStore(null)}
+                  className="px-3 py-2 text-xs font-semibold text-gray-500 hover:bg-gray-100 rounded-xl"
+                >
+                  إلغاء
+                </button>
+                <button
+                  type="submit"
+                  disabled={submittingPayment}
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2 rounded-xl text-xs font-bold shadow transition disabled:opacity-50"
+                >
+                  {submittingPayment ? "جاري التسجيل..." : "تأكيد تسجيل الدفعة"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

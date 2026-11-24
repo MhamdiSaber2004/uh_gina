@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import LivreurSingleCommandes from "../components/LivreurSingleComande";
 import { getLivreurCommandes } from "../axios/commandeApi";
-import { TruckIcon } from "@heroicons/react/24/outline";
+import { TruckIcon, BanknotesIcon } from "@heroicons/react/24/outline";
 
 export default function LivreurAllCommandes() {
   const [filterEtat, setFilterEtat] = useState("all");
@@ -27,6 +27,9 @@ export default function LivreurAllCommandes() {
   const enlivraisonCount = allCommandes.filter(c => c.etat === 'enlivraison' || c.etat === 'en livraison').length;
   const livreeCount = allCommandes.filter(c => c.etat === 'livree').length;
 
+  const myDelivered = allCommandes.filter(c => c.etat === 'livree');
+  const myEarnings = myDelivered.reduce((sum, c) => sum + (Number(c.fraisLivraison) || 0), 0);
+
   const filteredCommandes = filterEtat === "all"
     ? allCommandes
     : allCommandes.filter(c => {
@@ -47,6 +50,22 @@ export default function LivreurAllCommandes() {
             <h1 className="text-xl font-extrabold text-gray-900">طلبات التوصيل المتاحة</h1>
             <p className="text-xs text-gray-500 mt-0.5">استلم الطلبات ووجّه طريقك للزبون مباشرة</p>
           </div>
+        </div>
+
+        {/* Driver Earnings Banner ("ربح السائق") */}
+        <div className="bg-linear-to-r from-emerald-600 to-teal-600 rounded-2xl p-4 text-white shadow-sm flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center shrink-0">
+              <BanknotesIcon className="w-6 h-6 text-white" />
+            </div>
+            <div>
+              <span className="text-xs text-emerald-100 font-semibold block">مجموع أرباحك المحققة من التوصيل:</span>
+              <div className="text-xl font-black">{myEarnings.toFixed(2)} د.ت</div>
+            </div>
+          </div>
+          <span className="text-xs bg-white/20 px-2.5 py-1 rounded-lg font-bold">
+            {myDelivered.length} طلبات مكتملة
+          </span>
         </div>
 
         {/* Filter Tabs */}

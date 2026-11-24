@@ -1,4 +1,5 @@
 const User = require('../model/userModel');
+const Commande = require('../model/commandeModel');
 
 exports.login = async (req, res) => {
     const { phoneNumber, password } = req.body;
@@ -31,7 +32,7 @@ exports.login = async (req, res) => {
             }
         });
     } catch (error) {
-        console.log(error)
+        console.log(error);
         res.status(500).json({ message: "Server error", error: error.message });
     }
 }
@@ -54,12 +55,13 @@ exports.register = async (req, res) => {
             phoneNumber,
             adress,
             password,
-            role:'client' // Default to 'client' if no role is provided
+            role: 'client'
         });
 
         await user.save();
 
         const token = user.getSignedJwtToken();
+
         res.status(201).json({
             success: true,
             token,
@@ -76,7 +78,6 @@ exports.register = async (req, res) => {
 
 exports.modifyUser = async (req, res) => {
     const { name, phoneNumber, adress ,password , verifPassword} = req.body;
-    console.log(req.body);
     const userId = req.params.id;
 
     if( password !== verifPassword && password != "") {
@@ -100,14 +101,15 @@ exports.modifyUser = async (req, res) => {
         }
         if(adress == ""){
             user.adress = user.adress;
-        } else {
+        }else {
             user.adress = adress;
         }
-        if(password == "") {
+        if(password == ""){
             user.password = user.password;
         }else {
             user.password = password;
         }
+        
         await user.save();
 
         res.status(200).json({
@@ -143,7 +145,7 @@ exports.AddLivreur = async (req, res) => {
             name,
             phoneNumber,
             password,
-            role: 'livreur' // Default to 'client' if no role is provided
+            role: 'livreur'
         });
 
         await user.save();
@@ -184,8 +186,6 @@ exports.getUser = async (req, res) => {
     }
 }
 
-
-
 exports.getAllClients = async (req, res) => {
     try {
         const users = await User.find({role : "client"}).select('-password');
@@ -200,10 +200,33 @@ exports.getAllClients = async (req, res) => {
 
 exports.getAllLivreurs = async (req, res) => {
     try {
-        const users = await User.find({role : "livreur"}).select('-password');
+        const users = await User.find({role : "livreur"}).select('-password').lean();
+
+        // Calculate delivery earnings and completed orders for each driver
+        const livreursWithStats = await Promise.all(users.map(async (livreur) => {
+            const deliveredOrders = await Commande.find({
+                livreur: livreur._id,
+                etat: 'livree'
+            });
+
+            const totalEarnings = deliveredOrders.reduce((sum, c) => sum + (Number(c.fraisLivraison) || 0), 0);
+            const totalOrdersDelivered = deliveredOrders.length;
+            const activeOrders = await Commande.countDocuments({
+                livreur: livreur._id,
+                etat: 'enlivraison'
+            });
+
+            return {
+                ...livreur,
+                totalEarnings, // ربح السائق
+                totalOrdersDelivered, // عدد الطلبات المكتملة
+                activeOrders // طلبات جارية معه الآن
+            };
+        }));
+
         res.status(200).json({
             success: true,
-            users: users
+            users: livreursWithStats
         });
     } catch (error) {
         res.status(500).json({ message: "Server error", error: error.message });

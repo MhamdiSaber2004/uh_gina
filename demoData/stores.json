@@ -5,35 +5,41 @@
     "phone": "77 470 123",
     "address": "شارع الحبيب بورقيبة، القصرين",
     "description": "أشهى السندويتشات والأكلات السريعة في القصرين",
+    "image": "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=400&auto=format&fit=crop&q=80",
     "items": [
       {
         "name": "كسكروت كفتاجي تونسي",
         "price": 4.5,
         "description": "مع البيض، بطاطا مقلية وهريسة عربي",
+        "image": "https://images.unsplash.com/photo-1528735602780-2552fd46c7af?w=400&auto=format&fit=crop&q=80",
         "available": true
       },
       {
         "name": "كسكروت مقلوب إسكالوب",
         "price": 7.5,
         "description": "جبن موتزاريلا، صوص بلانش، فريت",
+        "image": "https://images.unsplash.com/photo-1509722747041-616f39b57569?w=400&auto=format&fit=crop&q=80",
         "available": true
       },
       {
         "name": "بيتزا مكسيكان عائلية",
         "price": 14.0,
         "description": "لحم مفروم، فلفل حار، جبن وزيتون",
+        "image": "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=400&auto=format&fit=crop&q=80",
         "available": true
       },
       {
         "name": "صحن شاورما مشكل",
         "price": 12.0,
         "description": "مع سلاطة مشوية وأرز وتشكيلة صوصات",
+        "image": "https://images.unsplash.com/photo-1561651823-34feb02250e4?w=400&auto=format&fit=crop&q=80",
         "available": true
       },
       {
         "name": "مشروب غازي 1 لتر",
         "price": 3.0,
         "description": "كوكا كولا أو فانتا أو بوجا",
+        "image": "https://images.unsplash.com/photo-1622483767028-3f66f32aef97?w=400&auto=format&fit=crop&q=80",
         "available": true
       }
     ]
@@ -44,29 +50,34 @@
     "phone": "77 471 999",
     "address": "ساحة الشهداء، القصرين",
     "description": "صيدلية استمرار ليلي ومستلزمات طبية وأدوية",
+    "image": "https://images.unsplash.com/photo-1586015555751-63c2c4314c4c?w=400&auto=format&fit=crop&q=80",
     "items": [
       {
         "name": "علبة بنادول إكسترا 500 مغ",
         "price": 4.2,
         "description": "مسكن آلام وخافض حرارة سريع",
+        "image": "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=400&auto=format&fit=crop&q=80",
         "available": true
       },
       {
         "name": "سيروم فيتامين C ومقوي مناعة",
         "price": 18.5,
         "description": "مكمل غذائي غني بالفيتامينات",
+        "image": "https://images.unsplash.com/photo-1607613009820-a29f7bb81c04?w=400&auto=format&fit=crop&q=80",
         "available": true
       },
       {
         "name": "حليب أطفال رقم 1 (800غ)",
         "price": 21.0,
         "description": "للأطفال من الولادة حتى 6 أشهر",
+        "image": "https://images.unsplash.com/photo-1585421514738-01798e348b17?w=400&auto=format&fit=crop&q=80",
         "available": true
       },
       {
         "name": "معقم كحولي وشاش طبي معقم",
         "price": 5.5,
         "description": "مجموعة إسعافات أولية",
+        "image": "https://images.unsplash.com/photo-1584744982491-665216d95f8b?w=400&auto=format&fit=crop&q=80",
         "available": true
       }
     ]
@@ -77,29 +88,34 @@
     "phone": "77 472 555",
     "address": "حي الزهور، القصرين",
     "description": "جميع المواد الغذائية ومستلزمات المنزل اليومية",
+    "image": "https://images.unsplash.com/photo-1578916171728-46686eac8d58?w=400&auto=format&fit=crop&q=80",
     "items": [
       {
         "name": "باقة حليب نصف دسم (6 علب)",
         "price": 8.4,
         "description": "حليب معقم 1 لتر * 6",
+        "image": "https://images.unsplash.com/photo-1550583724-b2692b85b150?w=400&auto=format&fit=crop&q=80",
         "available": true
       },
       {
         "name": "قارورة زيت نباتي 5 لتر",
         "price": 19.5,
         "description": "زيت للقلي والطبخ",
+        "image": "https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?w=400&auto=format&fit=crop&q=80",
         "available": true
       },
       {
         "name": "علبة قهوة مطحونة تونسية 250غ",
         "price": 6.8,
         "description": "خلطة تقليدية فاخرة",
+        "image": "https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?w=400&auto=format&fit=crop&q=80",
         "available": true
       },
       {
         "name": "باكت مكرونة فلة (500غ * 3)",
         "price": 3.6,
         "description": "تشكيلة مكرونة معكرونة تونسية",
+        "image": "https://images.unsplash.com/photo-1621996346565-e3d5d6281226?w=400&auto=format&fit=crop&q=80",
         "available": true
       }
     ]
@@ -110,23 +126,27 @@
     "phone": "77 473 222",
     "address": "حي المنار، القصرين",
     "description": "خبز طازج، مرطبات وحلويات شرقية وغربية",
+    "image": "https://images.unsplash.com/photo-1509440159596-0249088772ff?w=400&auto=format&fit=crop&q=80",
     "items": [
       {
         "name": "خبز باغات طازج (4 قطع)",
         "price": 1.0,
         "description": "ساخن من الفرن مباشرة",
+        "image": "https://images.unsplash.com/photo-1509440159596-0249088772ff?w=400&auto=format&fit=crop&q=80",
         "available": true
       },
       {
         "name": "كرواسون بالزبدة والشوكولاتة (3 قطع)",
         "price": 3.6,
         "description": "كرواسون فرنسي هش وفاخر",
+        "image": "https://images.unsplash.com/photo-1555507036-ab1f4038808a?w=400&auto=format&fit=crop&q=80",
         "available": true
       },
       {
         "name": "قطعة كيكة ميلفاي تقليدية",
         "price": 2.0,
         "description": "مع كريمة الفانيليا والسكر الناعم",
+        "image": "https://images.unsplash.com/photo-1587314168485-3236d6710814?w=400&auto=format&fit=crop&q=80",
         "available": true
       }
     ]
