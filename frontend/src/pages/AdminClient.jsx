@@ -57,7 +57,6 @@ export default function AdminClient() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 text-right">
             {filteredClients.map((client) => {
               const cleanPhone = String(client.phoneNumber || '').replace(/\s+/g, '');
-              const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent((client.adress || '') + ', Kasserine')}`;
 
               return (
                 <div key={client._id} className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex flex-col justify-between space-y-3">
@@ -75,10 +74,8 @@ export default function AdminClient() {
 
                   <div className="space-y-1.5 text-xs text-gray-600 pt-2 border-t border-gray-100">
                     <div className="flex items-center justify-end gap-1">
-                      <a href={mapsUrl} target="_blank" rel="noreferrer" className="hover:underline text-gray-600 flex items-center gap-1">
-                        <span>{client.adress || 'العنوان غير محدد'}</span>
-                        <MapPinIcon className="w-3.5 h-3.5 text-red-500 shrink-0" />
-                      </a>
+                      <span>{client.adress || 'العنوان غير محدد'}</span>
+                      <MapPinIcon className="w-3.5 h-3.5 text-red-500 shrink-0" />
                     </div>
                   </div>
 

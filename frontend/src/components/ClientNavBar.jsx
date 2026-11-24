@@ -16,8 +16,8 @@ export default function ClientNavBar() {
   const navigate = useNavigate();
 
   const navigation = [
-    { name: 'طلباتي (Commandes)', href: '/client' },
-    { name: 'طلب جديد (Nouveau)', href: '/client/command' },
+    { name: 'المتاجر والطلب (Magasins & Commande)', href: '/client/command' },
+    { name: 'طلباتي (Mes Commandes)', href: '/client' },
     { name: 'حسابي (Profil)', href: '/client/profile' },
   ].map((item) => ({
     ...item,

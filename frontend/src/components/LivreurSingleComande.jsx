@@ -53,7 +53,6 @@ export default function LivreurSingleCommandes({ commande, onUpdate }) {
 
   const config = getEtatConfig(etat);
   const cleanPhone = String(commande.phone || '').replace(/\s+/g, '');
-  const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(commande.adress + ', Kasserine')}`;
 
   const encoursHandled = async () => {
     setLoading(true);
@@ -227,31 +226,22 @@ export default function LivreurSingleCommandes({ commande, onUpdate }) {
         </div>
       </div>
 
-      {/* Driver Quick Actions: Call, WhatsApp, Maps */}
-      <div className="grid grid-cols-3 gap-2 pt-3">
+      {/* Driver Quick Actions: Call, WhatsApp */}
+      <div className="grid grid-cols-2 gap-2 pt-3">
         <a
           href={`tel:${cleanPhone}`}
-          className="flex items-center justify-center gap-1 py-2 px-3 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-bold transition"
+          className="flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-bold transition"
         >
           <PhoneIcon className="w-4 h-4" />
-          <span>اتصال</span>
+          <span>اتصال هاتفي</span>
         </a>
         <a
           href={`https://wa.me/216${cleanPhone}`}
           target="_blank"
           rel="noreferrer"
-          className="flex items-center justify-center gap-1 py-2 px-3 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-xs font-bold transition"
+          className="flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-xs font-bold transition"
         >
-          <span>واتساب</span>
-        </a>
-        <a
-          href={mapsUrl}
-          target="_blank"
-          rel="noreferrer"
-          className="flex items-center justify-center gap-1 py-2 px-3 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-bold transition"
-        >
-          <MapPinIcon className="w-4 h-4" />
-          <span>الخريطة GPS</span>
+          <span>مراسلة واتساب</span>
         </a>
       </div>
 

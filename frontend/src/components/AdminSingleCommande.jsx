@@ -49,7 +49,6 @@ export default function AdminSingleCommandes({ commande, onUpdate }) {
 
   const config = getEtatConfig(etat);
   const cleanPhone = String(commande.phone || '').replace(/\s+/g, '');
-  const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(commande.adress + ', Kasserine')}`;
 
   const annulerHandled = async () => {
     if (!window.confirm("هل أنت متأكد من إلغاء هذا الطلب؟")) return;
@@ -110,10 +109,8 @@ export default function AdminSingleCommandes({ commande, onUpdate }) {
         </div>
 
         <div className="flex items-center justify-end text-xs text-gray-600 gap-1">
-          <a href={mapsUrl} target="_blank" rel="noreferrer" className="hover:underline flex items-center gap-1 text-gray-600">
-            <span>{commande.adress}</span>
-            <MapPinIcon className="w-4 h-4 text-red-500 shrink-0" />
-          </a>
+          <span>{commande.adress}</span>
+          <MapPinIcon className="w-4 h-4 text-red-500 shrink-0" />
         </div>
 
         {commande.livreurName && (
