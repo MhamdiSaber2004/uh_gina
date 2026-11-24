@@ -1,0 +1,44 @@
+[
+  {
+    "name": "Admin Saber",
+    "phoneNumber": 29146431,
+    "adress": "Kasserine Centre, Rue Habib Bourguiba",
+    "password": "password123",
+    "role": "admin"
+  },
+  {
+    "name": "Rayen Livreur",
+    "phoneNumber": 22123456,
+    "adress": "Kasserine, Cité Ezzouhour",
+    "password": "password123",
+    "role": "livreur"
+  },
+  {
+    "name": "Ahmed Livreur",
+    "phoneNumber": 55987654,
+    "adress": "Kasserine, Cité Ennour",
+    "password": "password123",
+    "role": "livreur"
+  },
+  {
+    "name": "Mohamed Ben Ali",
+    "phoneNumber": 98112233,
+    "adress": "Kasserine, Avenue de l'Environnement",
+    "password": "password123",
+    "role": "client"
+  },
+  {
+    "name": "Sarra Trabelsi",
+    "phoneNumber": 44556677,
+    "adress": "Kasserine, Cité Essalem",
+    "password": "password123",
+    "role": "client"
+  },
+  {
+    "name": "Fares Guesmi",
+    "phoneNumber": 21334455,
+    "adress": "Kasserine, Route de Thala",
+    "password": "password123",
+    "role": "client"
+  }
+]

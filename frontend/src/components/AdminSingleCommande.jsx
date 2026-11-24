@@ -1,59 +1,138 @@
-import {modifyEtatCommande , annulerCommande} from "../axios/commandeApi";
-export default function AdminSingleCommandes({ commande }) {
-  const getEtatStyle = (etat) => {
-    switch (etat) {
+import { useState } from "react";
+import { annulerCommande } from "../axios/commandeApi";
+import { 
+  PhoneIcon, 
+  MapPinIcon, 
+  ClockIcon, 
+  TruckIcon, 
+  CheckCircleIcon,
+  XCircleIcon,
+  UserIcon
+} from '@heroicons/react/24/outline';
+
+export default function AdminSingleCommandes({ commande, onUpdate }) {
+  const [etat, setEtat] = useState(commande.etat);
+  const [loading, setLoading] = useState(false);
+
+  const getEtatConfig = (currentEtat) => {
+    switch (currentEtat) {
       case 'livree':
-        return 'bg-green-100 text-green-700';
+        return {
+          label: 'تم التوصيل (Livrée)',
+          badgeClass: 'bg-emerald-100 text-emerald-800 border-emerald-200',
+          Icon: CheckCircleIcon,
+        };
       case 'en livraison':
-        return 'bg-blue-100 text-blue-700';
+      case 'enlivraison':
+        return {
+          label: 'قيد التوصيل (En livraison)',
+          badgeClass: 'bg-blue-100 text-blue-800 border-blue-200',
+          Icon: TruckIcon,
+        };
+      case 'annulee':
+        return {
+          label: 'ملغاة (Annulée)',
+          badgeClass: 'bg-rose-100 text-rose-800 border-rose-200',
+          Icon: XCircleIcon,
+        };
       case 'encours':
-        return 'bg-yellow-100 text-yellow-700';
       default:
-        return 'bg-gray-100 text-gray-700';
+        return {
+          label: 'قيد الانتظار (En cours)',
+          badgeClass: 'bg-amber-100 text-amber-800 border-amber-200',
+          Icon: ClockIcon,
+        };
     }
   };
 
-  const encoursHandled = async (e) =>{
-    const res = await modifyEtatCommande(e.target.value , {etat : "enlivraison"});
-  }
+  const config = getEtatConfig(etat);
+  const cleanPhone = String(commande.phone || '').replace(/\s+/g, '');
+  const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(commande.adress + ', Kasserine')}`;
 
-  const enlivraisonHandled = async (e) =>{
-    const res = await modifyEtatCommande(e.target.value , { etat : "livree"});
-  }
+  const annulerHandled = async () => {
+    if (!window.confirm("هل أنت متأكد من إلغاء هذا الطلب؟")) return;
+    setLoading(true);
+    try {
+      await annulerCommande(commande._id);
+      setEtat("annulee");
+      if (onUpdate) onUpdate();
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  const annulerHandled = async (e)=>{
-    const res = await  annulerCommande(e.target.value , { etat : "annulee"})
-  }
+  const formattedDate = commande.createdAt
+    ? new Date(commande.createdAt).toLocaleDateString('fr-FR', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+      })
+    : '';
 
   return (
-    <div className="w-full max-w-md bg-white shadow-md rounded-xl p-4 mb-4 border border-gray-200 m-1">
-      {/* Date and Etat (top row) */}
-      <div className="flex justify-between items-center mb-2">
-        <h2 className="text-lg font-semibold text-gray-800">{new Date(commande.createdAt).toISOString().slice(0, 10).replace(/-/g, '-')}</h2>
+    <div className="w-full max-w-xl bg-white shadow-sm hover:shadow-md transition-shadow rounded-2xl p-5 mb-4 border border-gray-100 text-right">
+      {/* Header */}
+      <div className="flex flex-row-reverse justify-between items-center pb-3 border-b border-gray-100">
         <span
-          className={`text-sm font-medium px-3 py-1 rounded-full ${getEtatStyle(commande.etat)}`}
+          className={`inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-full border ${config.badgeClass}`}
         >
-          {commande.etat}
+          <config.Icon className="w-4 h-4" />
+          <span>{config.label}</span>
         </span>
+        <span className="text-xs text-gray-500 font-medium">{formattedDate}</span>
       </div>
 
-      {/* Phone and Address */}
-      <h6 className="text-sm font-semibold text-gray-800">
-        {commande.phone} : {commande.adress}
-      </h6>
+      {/* Info Rows */}
+      <div className="pt-3 space-y-2 text-sm">
+        <div className="flex items-center justify-between">
+          <a href={`tel:${cleanPhone}`} className="text-xs text-indigo-600 hover:underline font-semibold flex items-center gap-1">
+            <PhoneIcon className="w-3.5 h-3.5" />
+            <span>{commande.phone}</span>
+          </a>
+          <span className="font-bold text-gray-900 inline-flex items-center gap-1">
+            <span>{commande.clientName || 'الزبون'}</span>
+            <UserIcon className="w-4 h-4 text-indigo-500" />
+          </span>
+        </div>
 
-      {/* Description */}
-      <p className="text-sm text-gray-600">{commande.description}</p>
+        <div className="flex items-center justify-end text-xs text-gray-600 gap-1">
+          <a href={mapsUrl} target="_blank" rel="noreferrer" className="hover:underline flex items-center gap-1 text-gray-600">
+            <span>{commande.adress}</span>
+            <MapPinIcon className="w-4 h-4 text-red-500 shrink-0" />
+          </a>
+        </div>
 
-      {/* Buttons */}
-      <div className="mt-4 flex justify-end space-x-2">
-        {commande.etat !== 'livree' && commande.etat !== 'annulee' && (
-          <button onClick={annulerHandled} value={commande._id} className="bg-red-800 text-white px-4 py-2 rounded hover:bg-red-600 text-sm font-medium">
-            Annuler
-          </button>
+        {commande.livreurName && (
+          <div className="bg-indigo-50/70 p-2 rounded-xl text-xs text-indigo-900 flex items-center justify-between">
+            <span className="font-semibold">{commande.livreurName}</span>
+            <span className="text-indigo-600">السائق المسند:</span>
+          </div>
         )}
-       
+
+        {/* Order Details box */}
+        <div className="bg-gray-50 p-3 rounded-xl border border-gray-100 text-xs sm:text-sm text-gray-700">
+          <p className="font-semibold text-gray-900 mb-1">تفاصيل الطلب:</p>
+          <p className="whitespace-pre-wrap text-gray-600">{commande.description}</p>
+        </div>
       </div>
+
+      {/* Admin Actions */}
+      {etat !== 'livree' && etat !== 'annulee' && (
+        <div className="mt-4 pt-3 border-t border-gray-100 flex justify-end">
+          <button
+            onClick={annulerHandled}
+            disabled={loading}
+            className="inline-flex items-center gap-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 px-4 py-2 rounded-xl text-xs font-bold transition disabled:opacity-50"
+          >
+            <XCircleIcon className="w-4 h-4" />
+            <span>إلغاء الطلب (Annuler)</span>
+          </button>
+        </div>
+      )}
     </div>
   );
 }

@@ -1,0 +1,48 @@
+[
+  {
+    "clientPhone": 98112233,
+    "clientName": "Mohamed Ben Ali",
+    "phone": "98112233",
+    "adress": "Kasserine, Avenue de l'Environnement",
+    "description": "وجبة غداء كاملة (بيتزا فواكه بحر + كوكاكولا) من مطعم السلام",
+    "etat": "encours",
+    "livreurPhone": null
+  },
+  {
+    "clientPhone": 44556677,
+    "clientName": "Sarra Trabelsi",
+    "phone": "44556677",
+    "adress": "Kasserine, Cité Essalem",
+    "description": "حليب رضع رقم 1 + حفاضات أطفال + خافض حرارة من صيدلية الليل",
+    "etat": "enlivraison",
+    "livreurPhone": 22123456
+  },
+  {
+    "clientPhone": 21334455,
+    "clientName": "Fares Guesmi",
+    "phone": "21334455",
+    "adress": "Kasserine, Route de Thala",
+    "description": "ملف وثائق قانونية عاجل من المحكمة الابتدائية إلى مكتب المحاماة",
+    "etat": "livree",
+    "livreurPhone": 55987654
+  },
+  {
+    "clientPhone": 98112233,
+    "clientName": "Mohamed Ben Ali",
+    "phone": "98112233",
+    "adress": "Kasserine, Avenue de l'Environnement",
+    "description": "صندوق خضار وفواكه من سوق الجملة بالقصرين",
+    "etat": "annulee",
+    "livreurPhone": null,
+    "cancelledByAdmin": true
+  },
+  {
+    "clientPhone": 44556677,
+    "clientName": "Sarra Trabelsi",
+    "phone": "44556677",
+    "adress": "Kasserine, Cité Essalem",
+    "description": "شاحن هاتف أصلي Type-C من محطة الخدمات",
+    "etat": "encours",
+    "livreurPhone": null
+  }
+]

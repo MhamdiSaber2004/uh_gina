@@ -117,6 +117,7 @@ exports.modifyUser = async (req, res) => {
                 id: user._id,
                 name: user.name,
                 phoneNumber: user.phoneNumber,
+                adress: user.adress,
                 role: user.role
             }
         });

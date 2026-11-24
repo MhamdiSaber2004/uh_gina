@@ -1,138 +1,166 @@
 import { useState } from "react";
 import { modifyUser } from "../axios/authApi";
+import { useToast } from "../context/ToastContext";
+import { UserCircleIcon } from "@heroicons/react/24/outline";
 
 export default function ClientProfile() {
-    const [user, setUser] = useState(JSON.parse(localStorage.getItem("user")));
-    const [name, setName] = useState(user.name);
-    const [adress, setAdress] = useState(user.adress);
-    const [phoneNumber, setPhoneNumber] = useState(user.phoneNumber);
-    const [newPassword, setNewPassword] = useState("");
-    const [vNewPassword, setVNewPassword] = useState("");
+  const { showToast } = useToast();
+  const [user, setUser] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem("user")) || {};
+    } catch {
+      return {};
+    }
+  });
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        try {
-            if (newPassword === vNewPassword) {
-                const updatedUser = await modifyUser(user.role , user.id ,{
-                    name,
-                    adress,
-                    phoneNumber,
-                    password : newPassword,
-                    verifPassword : vNewPassword,
-                });
-                console.log(updatedUser);
-                localStorage.setItem("user", JSON.stringify(updatedUser));
-            } else {
-                alert("Passwords do not match");
-            }
-        } catch (err) {
-            alert("Error updating profile, please try again");
-            console.error(err);
-        }
+  const [name, setName] = useState(user?.name || "");
+  const [adress, setAdress] = useState(user?.adress || "");
+  const [phoneNumber, setPhoneNumber] = useState(user?.phoneNumber || "");
+  const [newPassword, setNewPassword] = useState("");
+  const [vNewPassword, setVNewPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    if (newPassword && newPassword !== vNewPassword) {
+      showToast("كلمتا المرور غير متطابقتين!", "error");
+      return;
     }
 
+    setLoading(true);
+    try {
+      const updatedUser = await modifyUser(user.role, user.id, {
+        name,
+        adress,
+        phoneNumber,
+        password: newPassword,
+        verifPassword: vNewPassword,
+      });
+
+      if (updatedUser?.data?.user) {
+        localStorage.setItem("user", JSON.stringify(updatedUser.data.user));
+        setUser(updatedUser.data.user);
+        setNewPassword("");
+        setVNewPassword("");
+        showToast("تم تحديث بيانات ملفك الشخصي بنجاح! ✅", "success");
+      }
+    } catch (err) {
+      showToast("حدث خطأ أثناء تعديل الحساب، يرجى المحاولة لاحقاً.", "error");
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
-    <>
-       <div className="flex min-h-full flex-1 flex-col justify-center px-6 py-12 lg:px-8">
-            <div className="mt-10 sm:mx-auto sm:w-full sm:max-w-sm">
-                <h1 className="text-2xl text-center font-bold text-gray-900">Modifier profile</h1>
-                <form onSubmit={handleSubmit} className="space-y-6">
-                      <div>
-                        <label htmlFor="Name" className="block text-sm/6 font-medium text-gray-900">
-                            Name
-                        </label>
-                        <div className="mt-2">
-                            <input
-                            id="Name"
-                            name="Name"
-                            type="text"
-                            required
-                            value={name}
-                            onChange={(e) => setName(e.target.value)}
-                            autoComplete="Name"
-                            className="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
-                            />
-                        </div>
-                    </div>
-                    
-                    <div>
-                        <label htmlFor="adress" className="block text-sm/6 font-medium text-gray-900">
-                            Adress
-                        </label>
-                        <div className="mt-2">
-                            <input
-                            id="adress"
-                            name="adress"
-                            type="text"
-                            required
-                            value={adress}
-                            onChange={(e) => setAdress(e.target.value)}
-                            autoComplete="adress"
-                            className="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
-                            />
-                        </div>
-                    </div>
-                    <div>
-                        <label htmlFor="phone_number" className="block text-sm/6 font-medium text-gray-900">
-                            Phone Number
-                        </label>
-                        <div className="mt-2">
-                            <input
-                            id="phone_number"
-                            name="phone_number"
-                            type="text"
-                            required
-                            value={phoneNumber}
-                            onChange={(e) => setPhoneNumber(e.target.value)}
-                            autoComplete="phone_number"
-                            className="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
-                            />
-                        </div>
-                    </div>
-                    <div>
-                        <label htmlFor="new_password" className="block text-sm/6 font-medium text-gray-900">
-                            New password
-                        </label>
-                        <div className="mt-2">
-                            <input
-                            id="new_password"
-                            name="new_password"
-                            type="text"
-                            
-                            value={newPassword}
-                            onChange={(e) => setNewPassword(e.target.value)}
-                            autoComplete="new_password"
-                            className="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
-                            />
-                        </div>
-                    </div>
-                    <div>
-                        <label htmlFor="v_new_password" className="block text-sm/6 font-medium text-gray-900">
-                            Verif new password
-                        </label>
-                        <div className="mt-2">
-                            <input
-                            id="v_new_password"
-                            name="v_new_password"
-                            type="text"
-                            
-                            value={vNewPassword}
-                            onChange={(e) => setVNewPassword(e.target.value)}
-                            autoComplete="v_new_password"
-                            className="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
-                            />
-                        </div>
-                    </div>
-                    
-                    <button
-                    type="submit"
-                    className="w-full rounded-md bg-indigo-600 px-3 py-1.5 text-base font-semibold text-white shadow-sm hover:bg-indigo-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 sm:text-sm/6"
-                    >
-                    Modifier profile
-                    </button>
-                </form>
+    <div className="min-h-screen bg-gray-50 flex flex-col justify-center px-4 py-10 sm:px-6 lg:px-8 font-sans">
+      <div className="sm:mx-auto sm:w-full sm:max-w-md">
+        <div className="bg-white p-7 sm:p-8 rounded-3xl shadow-sm border border-gray-100 text-right">
+          
+          <div className="text-center mb-6">
+            <div className="w-14 h-14 bg-indigo-50 text-indigo-600 rounded-full flex items-center justify-center mx-auto mb-2">
+              <UserCircleIcon className="w-10 h-10" />
             </div>
+            <h1 className="text-2xl font-black text-gray-900">الملف الشخصي</h1>
+            <p className="text-xs text-gray-500 mt-1">تعديل الاسم، العنوان، ورقم الهاتف</p>
+          </div>
+
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label htmlFor="Name" className="block text-xs font-bold text-gray-700 mb-1">
+                الاسم (Nom)
+              </label>
+              <input
+                id="Name"
+                name="Name"
+                type="text"
+                required
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className="w-full rounded-xl bg-gray-50 border border-gray-200 p-2.5 text-sm focus:bg-white focus:outline-indigo-600"
+              />
+            </div>
+
+            <div>
+              <label htmlFor="adress" className="block text-xs font-bold text-gray-700 mb-1">
+                العنوان (Adresse)
+              </label>
+              <input
+                id="adress"
+                name="adress"
+                type="text"
+                required
+                value={adress}
+                onChange={(e) => setAdress(e.target.value)}
+                className="w-full rounded-xl bg-gray-50 border border-gray-200 p-2.5 text-sm focus:bg-white focus:outline-indigo-600"
+              />
+            </div>
+
+            <div>
+              <label htmlFor="phone_number" className="block text-xs font-bold text-gray-700 mb-1">
+                رقم الهاتف (Téléphone)
+              </label>
+              <input
+                id="phone_number"
+                name="phone_number"
+                type="text"
+                required
+                value={phoneNumber}
+                onChange={(e) => setPhoneNumber(e.target.value)}
+                className="w-full rounded-xl bg-gray-50 border border-gray-200 p-2.5 text-sm focus:bg-white focus:outline-indigo-600"
+              />
+            </div>
+
+            <div className="pt-2 border-t border-gray-100">
+              <p className="text-xs font-bold text-gray-400 mb-3 text-center">لتغيير كلمة المرور (اختياري)</p>
+              
+              <div className="space-y-3">
+                <div>
+                  <label htmlFor="new_password" className="block text-xs font-bold text-gray-700 mb-1">
+                    كلمة المرور الجديدة
+                  </label>
+                  <input
+                    id="new_password"
+                    name="new_password"
+                    type="password"
+                    placeholder="اتركه فارغاً إذا لم ترغب بتغييرها"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    className="w-full rounded-xl bg-gray-50 border border-gray-200 p-2.5 text-sm focus:bg-white focus:outline-indigo-600"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="v_new_password" className="block text-xs font-bold text-gray-700 mb-1">
+                    تأكيد كلمة المرور الجديدة
+                  </label>
+                  <input
+                    id="v_new_password"
+                    name="v_new_password"
+                    type="password"
+                    placeholder="تأكيد كلمة المرور"
+                    value={vNewPassword}
+                    onChange={(e) => setVNewPassword(e.target.value)}
+                    className="w-full rounded-xl bg-gray-50 border border-gray-200 p-2.5 text-sm focus:bg-white focus:outline-indigo-600"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="pt-3">
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm rounded-xl shadow transition disabled:opacity-50"
+              >
+                {loading ? "جاري الحفظ..." : "حفظ التعديلات ✅"}
+              </button>
+            </div>
+          </form>
+
         </div>
-    </>
+      </div>
+    </div>
   );
 }

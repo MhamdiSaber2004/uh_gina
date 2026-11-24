@@ -1,4 +1,5 @@
-import { BrowserRouter, Routes, Route, Router } from 'react-router-dom';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { ToastProvider } from './context/ToastContext';
 import Home from './pages/Home';
 import Login from './pages/login';
 import Registre from './pages/Registre';
@@ -17,31 +18,32 @@ import AdminProfile from './pages/AdminProfile';
 
 function App() {
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path='/'>
-          <Route index element={<Home />} />
-          <Route path="login" element={<Login />} />
-          <Route path="registre" element={<Registre />} />
-        </Route>
-        <Route path='/client' element={<ClientLayout />}>
-          <Route index element={<ClientAllCommandes />} />
-          <Route path="command" element={<ClientAddCommand />} />
-          <Route path="profile" element={<ClientProfile />} />
-        </Route>
-        <Route path='/livreur' element={<LivreurLayout />}>
-          <Route index element={<LivreurAllCommandes />} />
-          <Route path='profile' element={<LivreurProfile />} />
-        </Route>
-        <Route path='/admin' element={<AdminLayout />}>
-          <Route index element={<AdminCommandes />} />
-          <Route path='livreurs' element={<AdminLivreur />} />
-          <Route path="clients" element={<AdminAllClients />} />
-          <Route path="profile" element={<AdminProfile />} />
-        </Route>
-      </Routes>
-      
-    </BrowserRouter>
+    <ToastProvider>
+      <BrowserRouter>
+        <Routes>
+          <Route path='/'>
+            <Route index element={<Home />} />
+            <Route path="login" element={<Login />} />
+            <Route path="registre" element={<Registre />} />
+          </Route>
+          <Route path='/client' element={<ClientLayout />}>
+            <Route index element={<ClientAllCommandes />} />
+            <Route path="command" element={<ClientAddCommand />} />
+            <Route path="profile" element={<ClientProfile />} />
+          </Route>
+          <Route path='/livreur' element={<LivreurLayout />}>
+            <Route index element={<LivreurAllCommandes />} />
+            <Route path='profile' element={<LivreurProfile />} />
+          </Route>
+          <Route path='/admin' element={<AdminLayout />}>
+            <Route index element={<AdminCommandes />} />
+            <Route path='livreurs' element={<AdminLivreur />} />
+            <Route path="clients" element={<AdminAllClients />} />
+            <Route path="profile" element={<AdminProfile />} />
+          </Route>
+        </Routes>
+      </BrowserRouter>
+    </ToastProvider>
   );
 }
 

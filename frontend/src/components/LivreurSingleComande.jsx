@@ -1,56 +1,173 @@
-import {modifyEtatCommande} from "../axios/commandeApi";
-export default function LivreurSingleCommandes({ commande }) {
-  const getEtatStyle = (etat) => {
-    switch (etat) {
+import { useState } from "react";
+import { modifyEtatCommande } from "../axios/commandeApi";
+import { 
+  PhoneIcon, 
+  MapPinIcon, 
+  ClockIcon, 
+  TruckIcon, 
+  CheckCircleIcon,
+  XCircleIcon,
+  UserIcon
+} from '@heroicons/react/24/outline';
+
+export default function LivreurSingleCommandes({ commande, onUpdate }) {
+  const [etat, setEtat] = useState(commande.etat);
+  const [loading, setLoading] = useState(false);
+
+  const getEtatConfig = (currentEtat) => {
+    switch (currentEtat) {
       case 'livree':
-        return 'bg-green-100 text-green-700';
+        return {
+          label: 'تم التسليم (Livrée)',
+          badgeClass: 'bg-emerald-100 text-emerald-800 border-emerald-200',
+          Icon: CheckCircleIcon,
+        };
       case 'en livraison':
-        return 'bg-blue-100 text-blue-700';
+      case 'enlivraison':
+        return {
+          label: 'قيد التوصيل معك (En livraison)',
+          badgeClass: 'bg-blue-100 text-blue-800 border-blue-200',
+          Icon: TruckIcon,
+        };
+      case 'annulee':
+        return {
+          label: 'ملغاة (Annulée)',
+          badgeClass: 'bg-rose-100 text-rose-800 border-rose-200',
+          Icon: XCircleIcon,
+        };
       case 'encours':
-        return 'bg-yellow-100 text-yellow-700';
       default:
-        return 'bg-gray-100 text-gray-700';
+        return {
+          label: 'متاحة للاستلام (En cours)',
+          badgeClass: 'bg-amber-100 text-amber-800 border-amber-200',
+          Icon: ClockIcon,
+        };
     }
   };
 
-  const encoursHandled = async (e) =>{
-    const res = await modifyEtatCommande(e.target.value , {etat : "enlivraison"});
-  }
+  const config = getEtatConfig(etat);
+  const cleanPhone = String(commande.phone || '').replace(/\s+/g, '');
+  const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(commande.adress + ', Kasserine')}`;
 
-  const enlivraisonHandled = async (e) =>{
-    const res = await modifyEtatCommande(e.target.value , { etat : "livree"});
-  }
+  const encoursHandled = async () => {
+    setLoading(true);
+    try {
+      await modifyEtatCommande(commande._id, { etat: "enlivraison" });
+      setEtat("enlivraison");
+      if (onUpdate) onUpdate();
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const enlivraisonHandled = async () => {
+    setLoading(true);
+    try {
+      await modifyEtatCommande(commande._id, { etat: "livree" });
+      setEtat("livree");
+      if (onUpdate) onUpdate();
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const formattedDate = commande.createdAt
+    ? new Date(commande.createdAt).toLocaleDateString('fr-FR', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+      })
+    : '';
 
   return (
-    <div className="w-full max-w-md bg-white shadow-md rounded-xl p-4 mb-4 border border-gray-200 m-1">
-      {/* Date and Etat (top row) */}
-      <div className="flex justify-between items-center mb-2">
-        <h2 className="text-lg font-semibold text-gray-800">{new Date(commande.createdAt).toISOString().slice(0, 10).replace(/-/g, '-')}</h2>
+    <div className="w-full max-w-xl bg-white shadow-sm hover:shadow-md transition-shadow rounded-2xl p-5 mb-4 border border-gray-100 text-right">
+      {/* Header */}
+      <div className="flex flex-row-reverse justify-between items-center pb-3 border-b border-gray-100">
         <span
-          className={`text-sm font-medium px-3 py-1 rounded-full ${getEtatStyle(commande.etat)}`}
+          className={`inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-full border ${config.badgeClass}`}
         >
-          {commande.etat}
+          <config.Icon className="w-4 h-4" />
+          <span>{config.label}</span>
         </span>
+        <span className="text-xs text-gray-500 font-medium">{formattedDate}</span>
       </div>
 
-      {/* Phone and Address */}
-      <h6 className="text-sm font-semibold text-gray-800">
-        {commande.phone} : {commande.adress}
-      </h6>
+      {/* Client Info & Address */}
+      <div className="pt-3 space-y-2 text-sm">
+        <div className="flex items-center justify-between">
+          <span className="text-xs text-gray-500">{commande.phone}</span>
+          <span className="font-bold text-gray-900 inline-flex items-center gap-1">
+            <span>{commande.clientName || 'الزبون'}</span>
+            <UserIcon className="w-4 h-4 text-indigo-500" />
+          </span>
+        </div>
 
-      {/* Description */}
-      <p className="text-sm text-gray-600">{commande.description}</p>
+        <div className="flex items-center justify-end text-xs text-gray-600 gap-1">
+          <span>{commande.adress}</span>
+          <MapPinIcon className="w-4 h-4 text-red-500 shrink-0" />
+        </div>
 
-      {/* Buttons */}
-      <div className="mt-4 flex justify-end space-x-2">
-        {commande.etat === 'encours' && (
-          <button onClick={encoursHandled} value={commande._id} className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 text-sm font-medium">
-            en livraison
+        {/* Order Details box */}
+        <div className="bg-gray-50 p-3 rounded-xl border border-gray-100 text-xs sm:text-sm text-gray-700">
+          <p className="font-semibold text-gray-900 mb-1">المطلوب توصيله:</p>
+          <p className="whitespace-pre-wrap text-gray-600">{commande.description}</p>
+        </div>
+      </div>
+
+      {/* Driver Quick Actions: Call, WhatsApp, Maps */}
+      <div className="grid grid-cols-3 gap-2 pt-3">
+        <a
+          href={`tel:${cleanPhone}`}
+          className="flex items-center justify-center gap-1 py-2 px-3 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-bold transition"
+        >
+          <PhoneIcon className="w-4 h-4" />
+          <span>اتصال</span>
+        </a>
+        <a
+          href={`https://wa.me/216${cleanPhone}`}
+          target="_blank"
+          rel="noreferrer"
+          className="flex items-center justify-center gap-1 py-2 px-3 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-xs font-bold transition"
+        >
+          <span>واتساب</span>
+        </a>
+        <a
+          href={mapsUrl}
+          target="_blank"
+          rel="noreferrer"
+          className="flex items-center justify-center gap-1 py-2 px-3 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-bold transition"
+        >
+          <MapPinIcon className="w-4 h-4" />
+          <span>الخريطة GPS</span>
+        </a>
+      </div>
+
+      {/* Main Delivery State Buttons */}
+      <div className="mt-4 pt-3 border-t border-gray-100 flex justify-end">
+        {etat === 'encours' && (
+          <button
+            onClick={encoursHandled}
+            disabled={loading}
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl font-bold text-sm shadow transition disabled:opacity-50"
+          >
+            <TruckIcon className="w-5 h-5" />
+            <span>استلام الطلب والبدء بالتوصيل 🛵</span>
           </button>
         )}
-        {commande.etat === 'enlivraison' && (
-          <button onClick={enlivraisonHandled} value={commande._id} className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 text-sm font-medium">
-            livree
+        {(etat === 'enlivraison' || etat === 'en livraison') && (
+          <button
+            onClick={enlivraisonHandled}
+            disabled={loading}
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2.5 rounded-xl font-bold text-sm shadow transition disabled:opacity-50"
+          >
+            <CheckCircleIcon className="w-5 h-5" />
+            <span>تأكيد إتمام التوصيل للزبون ✅</span>
           </button>
         )}
       </div>

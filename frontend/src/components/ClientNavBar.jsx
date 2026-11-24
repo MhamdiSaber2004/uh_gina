@@ -3,9 +3,9 @@ import {
   DisclosureButton,
   DisclosurePanel,
 } from '@headlessui/react';
-import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline';
+import { Bars3Icon, XMarkIcon, ArrowRightStartOnRectangleIcon } from '@heroicons/react/24/outline';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Fragment } from 'react';
+import logo from '../../public/logo.jpg';
 
 function classNames(...classes) {
   return classes.filter(Boolean).join(' ');
@@ -13,101 +13,101 @@ function classNames(...classes) {
 
 export default function ClientNavBar() {
   const location = useLocation();
-  const navigate = useNavigate(); // ⬅️ مهم جداً للتنقل
+  const navigate = useNavigate();
 
   const navigation = [
-    { name: 'All Commandes', href: '/client' },
-    { name: 'Add Command', href: '/client/command' },
-    { name: 'Profile', href: '/client/profile' },
+    { name: 'طلباتي (Commandes)', href: '/client' },
+    { name: 'طلب جديد (Nouveau)', href: '/client/command' },
+    { name: 'حسابي (Profil)', href: '/client/profile' },
   ].map((item) => ({
     ...item,
     current: location.pathname === item.href,
   }));
 
-  // ⬅️ وظيفة تسجيل الخروج
   const handleLogout = () => {
-    localStorage.removeItem('clientToken'); // أو localStorage.clear()
-    navigate('/'); // ⬅️ الرجوع للصفحة الرئيسية
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    navigate('/');
   };
 
   return (
-    <Disclosure as="nav" className="bg-gray-800">
-      {({ open }) => (
-        <Fragment>
-          <div className="mx-auto max-w-7xl px-2 sm:px-6 lg:px-8 flex justify-center">
-            <div className="relative flex h-16 items-center justify-center w-full">
+    <Disclosure as="nav" className="bg-gray-900 border-b border-gray-800 sticky top-0 z-40">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="relative flex h-16 items-center justify-between">
+          
+          {/* Brand */}
+          <Link to="/client" className="flex items-center gap-2.5">
+            <img src={logo} alt="Uh Gina" className="w-9 h-9 rounded-xl object-cover shadow-sm" />
+            <span className="text-white font-extrabold tracking-tight text-base sm:text-lg">
+              Uh Gina <span className="text-indigo-400 text-xs font-semibold">(فضاء الحريف)</span>
+            </span>
+          </Link>
 
-              {/* زر الموبايل */}
-              <div className="absolute inset-y-0 left-0 flex items-center sm:hidden">
-                <DisclosureButton className="group relative inline-flex items-center justify-center rounded-md p-2 text-gray-400 hover:bg-gray-700 hover:text-white focus:ring-2 focus:ring-white focus:outline-hidden focus:ring-inset">
-                  <Bars3Icon className={`${open ? 'hidden' : 'block'} size-6`} />
-                  <XMarkIcon className={`${open ? 'block' : 'hidden'} size-6`} />
-                </DisclosureButton>
-              </div>
+          {/* Desktop Nav */}
+          <div className="hidden sm:flex items-center space-x-2">
+            {navigation.map((item) => (
+              <Link
+                key={item.name}
+                to={item.href}
+                className={classNames(
+                  item.current
+                    ? 'bg-indigo-600 text-white shadow'
+                    : 'text-gray-300 hover:bg-gray-800 hover:text-white',
+                  'rounded-xl px-3.5 py-2 text-xs font-bold transition'
+                )}
+              >
+                {item.name}
+              </Link>
+            ))}
 
-              {/* روابط التصفح */}
-              <div className="flex justify-center w-full">
-                <div className="hidden sm:block">
-                  <div className="flex justify-center space-x-4">
-                    {navigation.map((item) => (
-                      <Link
-                        key={item.name}
-                        to={item.href}
-                        className={classNames(
-                          item.current
-                            ? 'bg-gray-900 text-white'
-                            : 'text-gray-300 hover:bg-gray-700 hover:text-white',
-                          'rounded-md px-3 py-2 text-sm font-medium'
-                        )}
-                      >
-                        {item.name}
-                      </Link>
-                    ))}
-
-                    {/* زر Logout في سطح المكتب */}
-                    <button
-                      onClick={handleLogout}
-                      className="text-gray-300 hover:bg-gray-700 hover:text-white rounded-md px-3 py-2 text-sm font-medium"
-                    >
-                      Logout
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
+            <button
+              onClick={handleLogout}
+              className="inline-flex items-center gap-1.5 text-rose-300 hover:bg-rose-950/40 hover:text-rose-200 rounded-xl px-3.5 py-2 text-xs font-bold transition ml-2 border border-rose-900/50"
+            >
+              <ArrowRightStartOnRectangleIcon className="w-4 h-4" />
+              <span>خروج</span>
+            </button>
           </div>
 
-          {/* القائمة في الموبايل */}
-          <DisclosurePanel className="sm:hidden">
-            <div className="space-y-1 px-2 pt-2 pb-3">
-              {navigation.map((item) => (
-                <DisclosureButton
-                  key={item.name}
-                  as={Link}
-                  to={item.href}
-                  className={classNames(
-                    item.current
-                      ? 'bg-gray-900 text-white'
-                      : 'text-gray-300 hover:bg-gray-700 hover:text-white',
-                    'block rounded-md px-3 py-2 text-base font-medium'
-                  )}
-                >
-                  {item.name}
-                </DisclosureButton>
-              ))}
+          {/* Mobile menu button */}
+          <div className="flex items-center sm:hidden">
+            <DisclosureButton className="inline-flex items-center justify-center rounded-xl p-2 text-gray-400 hover:bg-gray-800 hover:text-white focus:outline-none">
+              <span className="sr-only">Open main menu</span>
+              <Bars3Icon aria-hidden="true" className="block size-6 group-data-open:hidden" />
+              <XMarkIcon aria-hidden="true" className="hidden size-6 group-data-open:block" />
+            </DisclosureButton>
+          </div>
+        </div>
+      </div>
 
-              {/* زر Logout في الموبايل */}
-              <DisclosureButton
-                as="button"
-                onClick={handleLogout}
-                className="w-full text-left text-gray-300 hover:bg-gray-700 hover:text-white rounded-md px-3 py-2 text-base font-medium"
-              >
-                Logout
-              </DisclosureButton>
-            </div>
-          </DisclosurePanel>
-        </Fragment>
-      )}
+      {/* Mobile panel */}
+      <DisclosurePanel className="sm:hidden border-t border-gray-800 bg-gray-900">
+        <div className="space-y-1 px-3 pt-2 pb-3">
+          {navigation.map((item) => (
+            <DisclosureButton
+              key={item.name}
+              as={Link}
+              to={item.href}
+              className={classNames(
+                item.current
+                  ? 'bg-indigo-600 text-white'
+                  : 'text-gray-300 hover:bg-gray-800 hover:text-white',
+                'block rounded-xl px-3 py-2 text-sm font-bold text-right'
+              )}
+            >
+              {item.name}
+            </DisclosureButton>
+          ))}
+
+          <DisclosureButton
+            as="button"
+            onClick={handleLogout}
+            className="w-full text-right text-rose-400 hover:bg-rose-950/40 rounded-xl px-3 py-2 text-sm font-bold mt-2"
+          >
+            تسجيل الخروج (Déconnexion)
+          </DisclosureButton>
+        </div>
+      </DisclosurePanel>
     </Disclosure>
   );
 }
