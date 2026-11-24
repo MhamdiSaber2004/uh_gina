@@ -111,6 +111,9 @@ async function seed() {
         etat: c.etat,
         livreur: livreur ? livreur._id : null,
         livreurName: livreur ? livreur.name : null,
+        pickedUpAt: c.pickedUpAt ? new Date(c.pickedUpAt) : null,
+        payeAuMagasinParLivreur: Boolean(c.payeAuMagasinParLivreur),
+        datePaiementMagasin: c.datePaiementMagasin ? new Date(c.datePaiementMagasin) : null,
         annulerPar: c.cancelledByAdmin && adminUser ? adminUser._id : null
       });
 

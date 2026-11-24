@@ -1,7 +1,19 @@
-const  jwt  = require("jsonwebtoken");
+const jwt = require("jsonwebtoken");
+
+const extractToken = (req) => {
+    let token = req.headers.token;
+    if (!token && req.headers.authorization) {
+        if (req.headers.authorization.startsWith('Bearer ')) {
+            token = req.headers.authorization.split(' ')[1];
+        } else {
+            token = req.headers.authorization;
+        }
+    }
+    return token;
+};
 
 exports.verifyclient = (req, res, next) => {
-    const token = req.headers.token;
+    const token = extractToken(req);
     if (!token) {
         return res.status(401).json({ message: "Unauthorized access" });
     }
@@ -15,10 +27,10 @@ exports.verifyclient = (req, res, next) => {
         console.error("Token verification error:", error); 
         return res.status(401).json({ message: "Invalid token" });
     }
-}
+};
+
 exports.verifyLivreur = (req, res, next) => {
-    const token = req.headers.token;
-    
+    const token = extractToken(req);
     if (!token) {
         return res.status(401).json({ message: "Unauthorized access" });
     }
@@ -31,10 +43,10 @@ exports.verifyLivreur = (req, res, next) => {
     } catch (error) {
         return res.status(401).json({ message: "Invalid token" });
     }
-}
+};
 
 exports.verifyAdmin = (req, res, next) => {
-    const token = req.headers.token;
+    const token = extractToken(req);
     if (!token) {
         return res.status(401).json({ message: "Unauthorized access" });
     }
@@ -47,4 +59,4 @@ exports.verifyAdmin = (req, res, next) => {
     } catch (error) {
         return res.status(401).json({ message: "Invalid token" });
     }
-}
+};

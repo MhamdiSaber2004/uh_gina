@@ -14,8 +14,13 @@ exports.getAllStores = async (req, res) => {
 
             const totalDeliveredOrders = deliveredOrders.length;
             const totalSales = deliveredOrders.reduce((sum, c) => sum + (Number(c.prixItems) || 0), 0);
+            
+            // Orders where driver DID NOT pay the store directly (platform owes the store)
+            const unpaidByDriverOrders = deliveredOrders.filter(c => !c.payeAuMagasinParLivreur);
+            const totalOwedByOrders = unpaidByDriverOrders.reduce((sum, c) => sum + (Number(c.prixItems) || 0), 0);
+
             const totalPaidToStore = Number(store.totalPaidToStore) || 0;
-            const totalOwed = Math.max(0, totalSales - totalPaidToStore); // كم تدين له
+            const totalOwed = Math.max(0, totalOwedByOrders - totalPaidToStore); // كم تدين له
 
             return {
                 ...store,
@@ -200,6 +205,35 @@ exports.recordStorePayment = async (req, res) => {
         });
     } catch (error) {
         console.error("Error recording payment to store:", error);
+        res.status(500).json({ message: "Server error", error: error.message });
+    }
+};
+
+// Fetch all orders related to a specific store (including who picked it up, when, and if driver paid)
+exports.getStoreCommandes = async (req, res) => {
+    const storeId = req.params.id;
+    try {
+        const store = await Store.findById(storeId);
+        if (!store) {
+            return res.status(404).json({ message: "Store not found" });
+        }
+
+        const commandes = await Commande.find({
+            $or: [
+                { store: storeId },
+                { storeName: store.name }
+            ]
+        })
+        .populate('livreur', 'name phoneNumber')
+        .sort({ createdAt: -1 });
+
+        res.status(200).json({
+            success: true,
+            store: store,
+            commandes: commandes
+        });
+    } catch (error) {
+        console.error("Error fetching store commandes:", error);
         res.status(500).json({ message: "Server error", error: error.message });
     }
 };

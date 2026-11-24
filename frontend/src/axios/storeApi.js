@@ -15,3 +15,5 @@ export const addItemToStore = (storeId, itemData) => axiosInstance.post(`/stores
 export const deleteItemFromStore = (storeId, itemId) => axiosInstance.delete(`/stores/${storeId}/items/${itemId}`);
 
 export const recordStorePayment = (storeId, amount) => axiosInstance.post(`/stores/${storeId}/payment`, { amount });
+
+export const getStoreCommandes = (storeId) => axiosInstance.get(`/stores/${storeId}/commandes`);

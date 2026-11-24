@@ -7,7 +7,8 @@ const {
     deleteStore,
     addItemToStore,
     deleteItemFromStore,
-    recordStorePayment
+    recordStorePayment,
+    getStoreCommandes
 } = require('../controller/storeControler');
 const { verifyAdmin } = require('../middleware/protected');
 
@@ -28,5 +29,8 @@ router.delete('/:id/items/:itemId', verifyAdmin, deleteItemFromStore);
 
 // Store payment / debt settlement (Admin)
 router.post('/:id/payment', verifyAdmin, recordStorePayment);
+
+// Store orders history & tracking (Admin)
+router.get('/:id/commandes', verifyAdmin, getStoreCommandes);
 
 module.exports = router;

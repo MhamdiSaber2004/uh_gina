@@ -21,6 +21,13 @@ const commandeItemSchema = new mongoose.Schema({
     image: {
         type: String,
         default: ''
+    },
+    pickedUp: {
+        type: Boolean,
+        default: false
+    },
+    pickedUpAt: {
+        type: Date
     }
 });
 
@@ -78,6 +85,16 @@ const commandeSchema = new mongoose.Schema({
     adress: {
         type: String,
         required: true
+    },
+    pickedUpAt: {
+        type: Date
+    },
+    payeAuMagasinParLivreur: {
+        type: Boolean,
+        default: false
+    },
+    datePaiementMagasin: {
+        type: Date
     },
     annulerPar : {
         type :  mongoose.Schema.Types.ObjectId,

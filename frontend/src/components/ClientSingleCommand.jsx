@@ -147,6 +147,18 @@ export default function SingleCommand({ commande, onUpdate }) {
                       <span className="font-bold text-indigo-600 ml-1">x{it.quantity || 1}</span> {it.name}
                     </span>
                     {it.details && <span className="text-gray-400 text-[11px] block">{it.details}</span>}
+                    <div className="mt-0.5">
+                      {it.pickedUp ? (
+                        <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md">
+                          <CheckCircleIcon className="w-3 h-3 text-emerald-600" />
+                          <span>تم أخذه من المتجر ✓</span>
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-gray-500 bg-gray-100 px-2 py-0.5 rounded-md">
+                          <span>قيد الاستلام من المتجر...</span>
+                        </span>
+                      )}
+                    </div>
                   </div>
                   {it.image && (
                     <img
@@ -208,6 +220,12 @@ export default function SingleCommand({ commande, onUpdate }) {
           <span className="inline-flex items-center gap-1 font-semibold text-indigo-700 bg-indigo-50 px-2 py-1 rounded-md">
             <span>السائق: {commande.livreurName}</span>
             <UserIcon className="w-4 h-4 text-indigo-600" />
+          </span>
+        )}
+        {commande.pickedUpAt && (
+          <span className="inline-flex items-center gap-1 font-semibold text-emerald-800 bg-emerald-50 px-2 py-1 rounded-md">
+            <span>بدأ السائق التوصيل: {new Date(commande.pickedUpAt).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}</span>
+            <ClockIcon className="w-4 h-4 text-emerald-600" />
           </span>
         )}
       </div>

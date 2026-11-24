@@ -8,7 +8,9 @@ const {
     modifyEtatCommande,
     setFraisLivraison,
     annulerCommandeByClient,
-    annulerCommande
+    annulerCommande,
+    toggleItemPickup,
+    togglePayeMagasin
 } = require('../controller/commandeControler');
 const { verifyAdmin, verifyLivreur, verifyclient } = require('../middleware/protected');
 const router = express.Router();
@@ -36,6 +38,12 @@ router.put('/frais/:id', verifyLivreur, setFraisLivraison);
 
 // Client cancel order (strictly allowed ONLY when status is 'encours')
 router.put('/client/annuler/:id', verifyclient, annulerCommandeByClient);
+
+// Toggle item pickup status (multi-store checklist)
+router.put('/:id/items/:itemId/pickup', verifyLivreur, toggleItemPickup);
+
+// Toggle driver payment to store
+router.put('/:id/paye-magasin', verifyLivreur, togglePayeMagasin);
 
 // Admin cancel order (at any stage)
 router.put('/annuler/:id', verifyAdmin, annulerCommande);

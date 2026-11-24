@@ -115,9 +115,23 @@ export default function AdminSingleCommandes({ commande, onUpdate }) {
         </div>
 
         {commande.livreurName && (
-          <div className="bg-indigo-50/70 p-2 rounded-xl text-xs text-indigo-900 flex items-center justify-between">
-            <span className="font-semibold">{commande.livreurName}</span>
-            <span className="text-indigo-600">السائق المسند:</span>
+          <div className="bg-indigo-50/70 p-2.5 rounded-xl text-xs text-indigo-900 space-y-1">
+            <div className="flex items-center justify-between">
+              <span className="font-bold">{commande.livreurName}</span>
+              <span className="text-indigo-600">السائق المسند:</span>
+            </div>
+            {commande.pickedUpAt && (
+              <div className="flex items-center justify-between text-[11px] text-gray-600">
+                <span>{new Date(commande.pickedUpAt).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}</span>
+                <span>وقت أخذ الطلب من السائق:</span>
+              </div>
+            )}
+            <div className="flex items-center justify-between text-[11px] pt-1 border-t border-indigo-100">
+              <span className={`font-bold ${commande.payeAuMagasinParLivreur ? 'text-emerald-700' : 'text-amber-800'}`}>
+                {commande.payeAuMagasinParLivreur ? '✅ دفعه السائق للمتجر نقداً عند الاستلام' : '⏳ لم يُدفع للمتجر بعد (مستحق على الإدارة)'}
+              </span>
+              <span>حساب المتجر:</span>
+            </div>
           </div>
         )}
 
@@ -140,6 +154,17 @@ export default function AdminSingleCommandes({ commande, onUpdate }) {
                         <span className="font-bold text-indigo-600 ml-1">x{it.quantity || 1}</span> {it.name}
                       </span>
                       {it.details && <span className="text-gray-400 block text-[11px]">{it.details}</span>}
+                      <div className="mt-0.5">
+                        {it.pickedUp ? (
+                          <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md">
+                            <span>تم أخذه من المتجر ✓</span>
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 text-[10px] font-medium text-gray-500 bg-gray-100 px-2 py-0.5 rounded-md">
+                            <span>في انتظار الأخذ من المتجر</span>
+                          </span>
+                        )}
+                      </div>
                     </div>
                     {it.image && (
                       <img

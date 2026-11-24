@@ -1,5 +1,10 @@
 import { useState } from "react";
-import { modifyEtatCommande, setFraisLivraison } from "../axios/commandeApi";
+import { 
+  modifyEtatCommande, 
+  setFraisLivraison, 
+  toggleItemPickup, 
+  togglePayeMagasin 
+} from "../axios/commandeApi";
 import { 
   PhoneIcon, 
   MapPinIcon, 
@@ -17,6 +22,8 @@ import { useToast } from "../context/ToastContext";
 export default function LivreurSingleCommandes({ commande, onUpdate }) {
   const [etat, setEtat] = useState(commande.etat);
   const [frais, setFrais] = useState(commande.fraisLivraison || "");
+  const [items, setItems] = useState(commande.items || []);
+  const [payeMagasin, setPayeMagasin] = useState(Boolean(commande.payeAuMagasinParLivreur));
   const [loading, setLoading] = useState(false);
   const [previewImg, setPreviewImg] = useState(null);
   const { showToast } = useToast();
@@ -60,10 +67,11 @@ export default function LivreurSingleCommandes({ commande, onUpdate }) {
     try {
       await modifyEtatCommande(commande._id, { 
         etat: "enlivraison",
-        fraisLivraison: frais !== "" ? Number(frais) : commande.fraisLivraison 
+        fraisLivraison: frais !== "" ? Number(frais) : commande.fraisLivraison,
+        payeAuMagasinParLivreur: payeMagasin
       });
       setEtat("enlivraison");
-      showToast("استلمت الطلب! توجّه الآن إلى العنوان 🛵", "success");
+      showToast("استلمت الطلب! توجّه الآن إلى العناوين والمتاجر 🛵", "success");
       if (onUpdate) onUpdate();
     } catch (err) {
       showToast("حدث خطأ أثناء استلام الطلب", "error");
@@ -78,7 +86,8 @@ export default function LivreurSingleCommandes({ commande, onUpdate }) {
     try {
       await modifyEtatCommande(commande._id, { 
         etat: "livree",
-        fraisLivraison: frais !== "" ? Number(frais) : commande.fraisLivraison 
+        fraisLivraison: frais !== "" ? Number(frais) : commande.fraisLivraison,
+        payeAuMagasinParLivreur: payeMagasin
       });
       setEtat("livree");
       showToast("أحسنت! تم تأكيد تسليم الطلب بنجاح ✅", "success");
@@ -108,6 +117,41 @@ export default function LivreurSingleCommandes({ commande, onUpdate }) {
     }
   };
 
+  // Toggle item pickup (multi-store item checklist)
+  const handleToggleItemPickup = async (itemId, currentPickedUp) => {
+    try {
+      const res = await toggleItemPickup(commande._id, itemId, !currentPickedUp);
+      setItems(res.data.commande.items || []);
+      showToast(
+        !currentPickedUp ? "تم تأكيد أخذ الغرض من المتجر! ✅" : "تم إلغاء أخذ الغرض",
+        "info"
+      );
+      if (onUpdate) onUpdate();
+    } catch (err) {
+      console.error(err);
+      showToast("فشل تحديث حالة استلام الغرض", "error");
+    }
+  };
+
+  // Toggle driver payment to store
+  const handleTogglePayeMagasin = async () => {
+    const nextVal = !payeMagasin;
+    try {
+      await togglePayeMagasin(commande._id, nextVal);
+      setPayeMagasin(nextVal);
+      showToast(
+        nextVal 
+          ? "تم تسجيل أنك دفعت ثمن الغرض للمتجر مباشرة عند الاستلام 💰" 
+          : "تم إلغاء تسجيل الدفع للمتجر",
+        "success"
+      );
+      if (onUpdate) onUpdate();
+    } catch (err) {
+      console.error(err);
+      showToast("فشل تحديث حالة الدفع للمتجر", "error");
+    }
+  };
+
   const formattedDate = commande.createdAt
     ? new Date(commande.createdAt).toLocaleDateString('fr-FR', {
         day: '2-digit',
@@ -117,6 +161,13 @@ export default function LivreurSingleCommandes({ commande, onUpdate }) {
         minute: '2-digit',
       })
     : '';
+
+  const formattedPickupDate = commande.pickedUpAt
+    ? new Date(commande.pickedUpAt).toLocaleTimeString('fr-FR', {
+        hour: '2-digit',
+        minute: '2-digit',
+      })
+    : null;
 
   const totalCalculated = (commande.prixItems || 0) + (Number(frais) || 0);
 
@@ -130,7 +181,14 @@ export default function LivreurSingleCommandes({ commande, onUpdate }) {
           <config.Icon className="w-4 h-4" />
           <span>{config.label}</span>
         </span>
-        <span className="text-xs text-gray-500 font-medium">{formattedDate}</span>
+        <div className="flex items-center gap-2 text-xs text-gray-500 font-medium">
+          {formattedPickupDate && (
+            <span className="bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded-md font-semibold">
+              استلمته: {formattedPickupDate}
+            </span>
+          )}
+          <span>{formattedDate}</span>
+        </div>
       </div>
 
       {/* Store if specified */}
@@ -144,7 +202,7 @@ export default function LivreurSingleCommandes({ commande, onUpdate }) {
       {/* Client Info & Address */}
       <div className="pt-2 space-y-2 text-sm">
         <div className="flex items-center justify-between">
-          <span className="text-xs text-gray-500">{commande.phone}</span>
+          <span className="text-xs text-gray-500 dir-ltr">{commande.phone}</span>
           <span className="font-bold text-gray-900 inline-flex items-center gap-1">
             <span>{commande.clientName || 'الزبون'}</span>
             <UserIcon className="w-4 h-4 text-indigo-500" />
@@ -156,26 +214,55 @@ export default function LivreurSingleCommandes({ commande, onUpdate }) {
           <MapPinIcon className="w-4 h-4 text-red-500 shrink-0" />
         </div>
 
-        {/* Items List */}
-        {Array.isArray(commande.items) && commande.items.length > 0 && (
-          <div className="bg-gray-50 p-3 rounded-xl border border-gray-100 text-xs text-gray-700 space-y-1.5">
-            <p className="font-bold text-gray-900 flex items-center justify-end gap-1">
-              <span>الأغراض المطلوبة ({commande.items.length}):</span>
-              <ShoppingBagIcon className="w-4 h-4 text-indigo-600" />
-            </p>
+        {/* Multi-Store Items Pickup Checklist */}
+        {Array.isArray(items) && items.length > 0 && (
+          <div className="bg-gray-50 p-3.5 rounded-2xl border border-gray-100 text-xs text-gray-700 space-y-2">
+            <div className="flex items-center justify-between border-b border-gray-200/60 pb-2">
+              <span className="text-[11px] text-gray-500 font-medium">
+                اضغط على الزر لتأكيد أخذ كل غرض عند زيارة المتجر
+              </span>
+              <p className="font-extrabold text-gray-900 flex items-center gap-1">
+                <span>أغراض الطلبية ({items.length}):</span>
+                <ShoppingBagIcon className="w-4 h-4 text-indigo-600" />
+              </p>
+            </div>
+
             <div className="divide-y divide-gray-200/60">
-              {commande.items.map((it, idx) => (
-                <div key={idx} className="flex justify-between items-center py-2">
-                  <span className="font-bold text-gray-900">
-                    {it.price > 0 ? `${(it.price * (it.quantity || 1)).toFixed(2)} د.ت` : '-'}
-                  </span>
-                  <div className="flex items-center gap-2">
+              {items.map((it, idx) => (
+                <div key={it._id || idx} className="py-2.5 flex items-center justify-between gap-2">
+                  
+                  {/* Item Pickup Action Button */}
+                  <button
+                    type="button"
+                    onClick={() => handleToggleItemPickup(it._id, it.pickedUp)}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shrink-0 ${
+                      it.pickedUp
+                        ? "bg-emerald-100 text-emerald-800 border border-emerald-300 shadow-2xs"
+                        : "bg-white text-gray-700 hover:bg-emerald-50 hover:text-emerald-700 border border-gray-300"
+                    }`}
+                  >
+                    {it.pickedUp ? (
+                      <>
+                        <CheckCircleIcon className="w-4 h-4 text-emerald-600" />
+                        <span>تم أخذه من المتجر ✓</span>
+                      </>
+                    ) : (
+                      <span>أخذ الغرض (Item {idx + 1})</span>
+                    )}
+                  </button>
+
+                  {/* Item Details & Thumbnail */}
+                  <div className="flex items-center gap-2 flex-1 justify-end">
                     <div className="text-right">
-                      <span className="font-bold text-gray-900">
+                      <div className="font-bold text-gray-900">
                         <span className="font-bold text-indigo-600 ml-1">x{it.quantity || 1}</span> {it.name}
-                      </span>
-                      {it.details && <span className="text-gray-400 block text-[11px]">{it.details}</span>}
+                      </div>
+                      <div className="text-[11px] text-gray-500">
+                        {it.price > 0 ? `${(it.price * (it.quantity || 1)).toFixed(2)} د.ت` : 'سعر تقريبي'}
+                        {it.details && <span className="mr-1 text-gray-400">({it.details})</span>}
+                      </div>
                     </div>
+
                     {it.image && (
                       <img
                         src={it.image}
@@ -186,6 +273,7 @@ export default function LivreurSingleCommandes({ commande, onUpdate }) {
                       />
                     )}
                   </div>
+
                 </div>
               ))}
             </div>
@@ -193,12 +281,39 @@ export default function LivreurSingleCommandes({ commande, onUpdate }) {
         )}
 
         {/* Fallback Description */}
-        {commande.description && (!commande.items || commande.items.length === 0) && (
+        {commande.description && (!items || items.length === 0) && (
           <div className="bg-gray-50 p-3 rounded-xl border border-gray-100 text-xs sm:text-sm text-gray-700">
             <p className="font-semibold text-gray-900 mb-1">تفاصيل الطلب:</p>
             <p className="whitespace-pre-wrap text-gray-600">{commande.description}</p>
           </div>
         )}
+
+        {/* Driver Payment to Store Option ("دفع سعر الغرض عند أخذه") */}
+        <div className="bg-emerald-50/70 p-3.5 rounded-2xl border border-emerald-200/80 flex items-center justify-between gap-3 text-xs">
+          <button
+            type="button"
+            onClick={handleTogglePayeMagasin}
+            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shrink-0 ${
+              payeMagasin
+                ? "bg-emerald-600 text-white shadow-xs"
+                : "bg-white text-gray-700 hover:bg-emerald-100 border border-emerald-300"
+            }`}
+          >
+            <CheckCircleIcon className="w-4 h-4" />
+            <span>{payeMagasin ? "دفعت ثمنه للمتجر ✓" : "سجل إذا دفعت للمتجر"}</span>
+          </button>
+
+          <div className="text-right">
+            <span className="font-extrabold text-emerald-950 block text-xs">
+              {payeMagasin ? "دفعت للمتجر نقداً عند الأخذ ✅" : "لم تدفع للمتجر بعد (مستحق على الإدارة)"}
+            </span>
+            <span className="text-[11px] text-gray-500">
+              {payeMagasin
+                ? "سيتم استرجاع ثمن السلع لك من الزبون عند التسليم"
+                : "ستقوم الإدارة بتسوية الحساب مع المتجر لاحقاً"}
+            </span>
+          </div>
+        </div>
 
         {/* Pricing & Delivery Fee Setting Box */}
         <div className="bg-amber-50/60 p-3.5 rounded-2xl border border-amber-200/60 space-y-2 text-xs">
@@ -283,7 +398,7 @@ export default function LivreurSingleCommandes({ commande, onUpdate }) {
         )}
       </div>
 
-      {/* Item Image Lightbox for Driver */}
+      {/* Item Image Lightbox */}
       {previewImg && (
         <div
           onClick={() => setPreviewImg(null)}
